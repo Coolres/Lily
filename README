@@ -1,0 +1,12 @@
+The 'Lilypad' project is an attempt to make a lightweight reusable
+MVC framework for launching web applications. In addition to the MVC component
+Lilypad also attempts to address building an extensible library of common code
+shared across web applications.
+
+Version 1 Goals
+    - Create Class Autoloader functionality
+    - Create basic application framework
+    - Create basic Controller / Dispatcher
+    - Create routes for controller / dispatcher
+
+
