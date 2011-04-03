@@ -4,7 +4,7 @@
  * Lilypad_Controller_Dispatcher class.
  * @author Matt Ward
  */
-class Lilypad_Controller_Dispatcher
+class LilypadMVC_Controller_Dispatcher
 {
     protected $_dirs;
     protected $_view_class;
@@ -12,33 +12,33 @@ class Lilypad_Controller_Dispatcher
     public function __construct($options)
     {
     	if (is_null($options)) {
-    		throw new Lilypad_Controller_Exception(
+    		throw new LilypadMVC_Controller_Exception(
     			"Configuration options not set. Need controller_dir, template_dir, and partial_dir set for at least one module");
     	}
     	
     	if (is_array($options) && isset($options['dirs'])) {
     		if (!isset($options['dirs'])) {
-    			throw new Lilypad_Controller_Exception(
+    			throw new LilypadMVC_Controller_Exception(
     				"Configuration options not set. Need controller_dir, template_dir, and partial_dir set for at least one module");
     		}
     		
     		if (!isset($options['view_class'])) {
-    			throw new Lilypad_Controller_Exception(
-    				"Default view class not specified");
+    			$options['view_class'] = 'LilypadMVC_View_Abstract';
+    			//throw new LilypadMVC_Controller_Exception("Default view class not specified");
     		}
     		$this->_view_class	 = $options['view_class'];
     		
     		foreach ($options['dirs'] as $name => $module) {
     			if (!isset($module['controller_dir'])) {
-    				throw new Lilypad_Controller_Exception("'controller_dir not set for module '$name'");
+    				throw new LilypadMVC_Controller_Exception("'controller_dir not set for module '$name'");
     			}
     			
     			if (!isset($module['template_dir'])) {
-    				throw new Lilypad_Controller_Exception("'template_dir not set for module '$name'");
+    				throw new LilypadMVC_Controller_Exception("'template_dir not set for module '$name'");
     			}
     			
     			if (!isset($module['partial_dir'])) {
-    				throw new Lilypad_Controller_Exception("'partial_dir not set for module '$name'");
+    				throw new LilypadMVC_Controller_Exception("'partial_dir not set for module '$name'");
     			}
     		}
     		$this->_dirs = $options['dirs'];
@@ -52,20 +52,21 @@ class Lilypad_Controller_Dispatcher
     
     public function formatActionName($string)
     {
-        return Utility::toCamelCase($string, false) . 'Action';
+        return LilypadMVC_Utility::toCamelCase($string, false) . 'Action';
     }
     
-    public function dispatch(Lilypad_Controller_Request $request)
+    public function dispatch(LilypadMVC_Controller_Request $request)
     {
         if (is_null($request) || $request === false) {
-            throw new Lilypad_Controller_Exception('Page could not be found', 404);
+            throw new LilypadMVC_Controller_Exception('Page could not be found', 404);
         }
         
         if (!isset($this->_dirs[$request->getModuleName()])) {
-            throw new Lilypad_Controller_Exception("No directories specified for '{$request->getModule()}' module.", 500);   
+            throw new LilypadMVC_Controller_Exception("No directories specified for '{$request->getModule()}' module.", 500);   
         }
             
-        $response = new Lilypad_Controller_Response();
+        $response = new LilypadMVC_Controller_Response();
+        $log = LilypadMVC_Application::getLogger();
         
         for ($i=0; $i < 4; $i++) {
         	if ($request->getDispatched()) {
@@ -85,11 +86,11 @@ class Lilypad_Controller_Dispatcher
         		require_once($controller_path);
         		$controller		= new $controller_class($request, $response);
         		$action			= $this->formatActionName($request->getActionName());
-        	Log::debug(" Will invoke {$controller_class}->{$action}()", NULL, 'LILYPAD_DEBUG');
+        		$log->debug(" Will invoke {$controller_class}->{$action}()", NULL, 'LILYPAD_DEBUG');
         		
         		$class_methods	= get_class_methods($controller);
         		if (!in_array($action, $class_methods)) {
-        			throw new Lilypad_Controller_Exception("Specified action, '$action' could not be found", 404);
+        			throw new LilypadMVC_Controller_Exception("Specified action, '$action' could not be found", 404);
         		}
         		
         		// Execute the requested action
@@ -104,14 +105,14 @@ class Lilypad_Controller_Dispatcher
         		$data_type		= $request->getDataType();
         		switch ($data_type) {
         			case 'json':
-        				$view	= new Lilypad_View_Abstract($partial_dir);
+        				$view	= new LilypadMVC_View_Abstract($partial_dir);
         				$response->setView($view);
         				$response->setTemplate('json');
         				$response->addHeader('Content-Type: application/json; charset=utf-8');
 						break;
 						
 					case 'jsonp':
-						$view	= new Lilypad_View_Abstract($partial_dir);
+						$view	= new LilypadMVC_View_Abstract($partial_dir);
         				$response->setView($view);
         				$response->setTemplate('jsonp');
         				$response->addHeader('Content-Type: text/html');
@@ -136,7 +137,7 @@ class Lilypad_Controller_Dispatcher
         }
         
         if ($request->getDispatched() == false) {
-        	throw new Lilypad_Controller_Exception("Could not find {$request->getControllerName()}/{$request->getActionName()}", 404 );
+        	throw new LilypadMVC_Controller_Exception("Could not find {$request->getControllerName()}/{$request->getActionName()}", 404 );
         }
         
         return $response;

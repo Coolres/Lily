@@ -1,7 +1,7 @@
 <?php
 
 
-class Lilypad_Config_Ini
+class LilypadMVC_Config_Ini
 {
 
 	protected $_file;
@@ -29,7 +29,7 @@ class Lilypad_Config_Ini
 		
 	}
 	
-	public function merge(Lilypad_Config_Ini& $config) {
+	public function merge(LilypadMVC_Config_Ini& $config) {
 		
 	}
 	

@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Lilypad_Controller_Router class.
+ * LilypadMVC_Controller_Router class.
  * @author Matt Ward
  */
-class Lilypad_Controller_Router 
+class LilypadMVC_Controller_Router 
 {
     private $_routes;
     
@@ -13,11 +13,11 @@ class Lilypad_Controller_Router
         $this->_routes = array();
     }
    
-    public function addRoute(Lilypad_Controller_Route_Abstract $route) {
+    public function addRoute(LilypadMVC_Controller_Route_Abstract $route) {
     	$this->_routes[] = $route;
     }
     
-    public function setDefaultRoute(Lilypad_Controller_Route_Abstract $route) {
+    public function setDefaultRoute(LilypadMVC_Controller_Route_Abstract $route) {
         $this->_default = $route;
     }
 
@@ -27,7 +27,8 @@ class Lilypad_Controller_Router
     	$url = isset($t[0]) ? $t[0] : '';
     	$query_string = isset($t[1]) ? $t[1] : '';
     
-    	Log::debug("trying to find match for $url $query_string ", NULL, 'LILYPAD_DEBUG');
+    	$log = LilypadMVC_Application::getLogger();
+    	$log->debug("trying to find match for $url $query_string ", NULL, 'LilypadMVC_DEBUG');
 
         $reversed = array_reverse($this->_routes);
         foreach($reversed as $route) {
@@ -37,6 +38,4 @@ class Lilypad_Controller_Router
         }
         return false;
     }
-
-
 }

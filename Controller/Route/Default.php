@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Lilypad_Controller_Route_Default class.
+ * LilypadMVC_Controller_Route_Default class.
  * @author Matt Ward
- * @extends Lilypad_Controller_Route_Abstract
+ * @extends LilypadMVC_Controller_Route_Abstract
  */
-class Lilypad_Controller_Route_Default extends Lilypad_Controller_Route_Abstract
+class LilypadMVC_Controller_Route_Default extends LilypadMVC_Controller_Route_Abstract
 {
     private $_pattern;
     private $_urlDelimiter = '/';
@@ -23,7 +23,8 @@ class Lilypad_Controller_Route_Default extends Lilypad_Controller_Route_Abstract
 
     public function match($uri)
     {
-    	Log::debug("trying to match $uri against {$this->_pattern}", NULL, 'LILYPAD_DEBUG');
+    	$log = LilypadMVC_Application::getLogger();
+    	$log->debug("trying to match $uri against {$this->_pattern}", NULL, 'LilypadMVC_DEBUG');
     	
     	
         $uri        = trim($uri, $this->_urlDelimiter);
@@ -40,13 +41,13 @@ class Lilypad_Controller_Route_Default extends Lilypad_Controller_Route_Abstract
             }
         }
         
-	    Log::debug("match found.", NULL, 'LILYPAD_DEBUG');
+	    $log->debug("match found.", NULL, 'LilypadMVC_DEBUG');
         return true;
     }
 
     public function getRequest($uri, $query_string)
     {
-    	$request    = new Lilypad_Controller_Request();
+    	$request    = new LilypadMVC_Controller_Request();
         $uri        = trim($uri, $this->_urlDelimiter);
         $pattern    = explode($this->_urlDelimiter, $this->_pattern);
         $parts      = explode($this->_urlDelimiter, $uri);

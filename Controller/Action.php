@@ -2,15 +2,15 @@
 
 
 /**
- * Lilypad_Controller_Action class.
+ * LilypadMVC_Controller_Action class.
  * @author Matt Ward
  */
-class Lilypad_Controller_Action
+class LilypadMVC_Controller_Action
 {
     protected $_request;
     protected $_response;
 
-    public function __construct(Lilypad_Controller_Request& $request, Lilypad_Controller_Response& $response){
+    public function __construct(LilypadMVC_Controller_Request& $request, LilypadMVC_Controller_Response& $response){
         // Instantiate smarty here.
         
         $this->_request     = $request;
@@ -25,7 +25,7 @@ class Lilypad_Controller_Action
 		$this->_response->assign($key, $value);
 	}
     
-    public function setResponse(Lilypad_Controller_Response $response) {
+    public function setResponse(LilypadMVC_Controller_Response $response) {
     	$this->_response = $response;
     }
     

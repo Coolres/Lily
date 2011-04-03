@@ -1,11 +1,9 @@
 <?php
-
-
 /**
- * Lilypad_Controller_Response class.
+ * LilypadMVC_Controller_Response class.
  * @author Matt Ward
  */
-class Lilypad_Controller_Response
+class LilypadMVC_Controller_Response
 {
     private $_headers;
  	private $_content;
@@ -90,11 +88,12 @@ class Lilypad_Controller_Response
     public function render() {	
     	$temp = '';
     	
+    	$log = LilypadMVC_Application::getLogger();
      	if ($this->_should_render && $this->_view) {
      		foreach ($this->_data as $key => $value) { 
      			$this->_view->$key = $value;
      		}
-        	Log::debug("{$this->_template}", null, 'LILYPAD_DEBUG');
+        	$log->debug("{$this->_template}", null, 'LilypadMVC_DEBUG');
      		$temp	= $this->_view->render($this->_template_dir . '/' . $this->_template);     		
      	}
      	

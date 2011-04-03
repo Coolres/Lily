@@ -1,20 +1,53 @@
 <?php
 
 /**
- * Lilypad_Application class.
+ * LilypadMVC_Application class.
  * @author Matt Ward
  */
-class Lilypad_Application {
+class LilypadMVC_Application {
 
     private static $autoloader;
+    private static $logger;
     private $_router;
     private $_dispatcher;
+    private $_options;
+    private $_use_user_apc = false;
 
     public function __construct($options=NULL)
     {
+    	$this->_options = $options;
+    	foreach ($this->_options as $key => $value) {
+    		switch ($key) {
+    			case 'use_user_apc':
+    				$this->_use_user_apc = $value;
+    			break;
+    			
+    			case 'autoloader':
+    				if ($value instanceof LilypadMVC_Loader_Autoloader) {
+    					self::$autoloader = $value;
+    				}
+    			break;
+    			
+    			case 'logger':
+    				if ($value instanceof LilypadMVC_iLog) {
+    					self::$logger = $value;
+    				} elseif (is_array($value)) {
+    					self::$logger = new LilypadMVC_Log_Abstract($value);
+    				}
+    					
+    			break;
+    			
+    			default: break;
+    		}
+    	}
+    	
+    	if (null !== self::$logger) {
+    		set_error_handler(array(self::logger, 'handler'));
+    	}
+    	
         // Register autoloader.
         self::getAutoloader();
-        $this->_options = $options;
+        
     }
 
 
@@ -26,14 +59,14 @@ class Lilypad_Application {
     	try {
 	        if (is_null($url)){
 	        	if (!isset($_SERVER['REQUEST_URI'])) {
-	        		throw new Lilypad_Controller_Exception("URL not specified and SERVER Request URI not set", 500);
+	        		throw new LilypadMVC_Controller_Exception("URL not specified and SERVER Request URI not set", 500);
 	        	}
 	        	$url = $_SERVER['REQUEST_URI'];
 	        }
 
 			$success = false;
 	        // APC optimizations
-	        if (defined('USE_APC_USER') && constant('USE_APC_USER')) {
+	        if ($this->_use_user_apc) {
 	        	$temp = apc_fetch($url, $success);
 	        }
 	        if ($success) {
@@ -41,9 +74,9 @@ class Lilypad_Application {
 	        } else {
 		        $request = $this->getRouter()->match($url);
 		        if ($request === false) {
-		            throw new Lilypad_Controller_Exception("Could not find an appropriate route. 404", 404);
+		            throw new LilypadMVC_Controller_Exception("Could not find an appropriate route. 404", 404);
 		        } else {
-		        	if (defined('USE_APC_USER') && constant('USE_APC_USER')) {
+		        	if ($this->_use_user_apc) {
 		        		apc_store($url, $request, 3600);
 		        	}
 		        }
@@ -52,9 +85,9 @@ class Lilypad_Application {
 	        $response = $dispatcher->dispatch($request);
 	        $response->render();
 
-    	} catch (Lilypad_Controller_Exception $e) {
+    	} catch (LilypadMVC_Controller_Exception $e) {
     		ob_clean();
-    		$error_request = new Lilypad_Controller_Request();
+    		$error_request = new LilypadMVC_Controller_Request();
     		$error_request->setModule('default')
     					->setController('error')
     					->setAction('error')
@@ -67,7 +100,7 @@ class Lilypad_Application {
 	        $response->render();
     	} catch (Exception $e) {
     		ob_clean();
-    		$error_request = new Lilypad_Controller_Request();
+    		$error_request = new LilypadMVC_Controller_Request();
     		$error_request->setModule('default')
     					->setController('error')
     					->setAction('error')
@@ -85,12 +118,12 @@ class Lilypad_Application {
     public function getDispatcher()
     {
         if (is_null($this->_dispatcher)) {
-            $this->_dispatcher = new Lilypad_Controller_Dispatcher($this->_options);
+            $this->_dispatcher = new LilypadMVC_Controller_Dispatcher($this->_options);
         }
         return $this->_dispatcher;
     }
 
-    public function addRoute(Lilypad_Controller_Route_Abstract $route)
+    public function addRoute(LilypadMVC_Controller_Route_Abstract $route)
     {
         $router = $this->getRouter();
         $router->addRoute($route);
@@ -102,8 +135,8 @@ class Lilypad_Application {
         if (is_null($this->_router))
         {
         	require_once(dirname(__FILE__) . '/Controller/Router.php');
-            $this->_router = new Lilypad_Controller_Router($this->_options);
-            $route = new Lilypad_Controller_Route_Default();
+            $this->_router = new LilypadMVC_Controller_Router($this->_options);
+            $route = new LilypadMVC_Controller_Route_Default();
             $this->_router->addRoute($route);
         }
         return $this->_router;
@@ -114,16 +147,11 @@ class Lilypad_Application {
         if (is_null(self::$autoloader)) {
             require_once(dirname(__FILE__) . '/Loader/Autoloader.php');
             require_once(dirname(__FILE__) . '/Loader/Autoloader/Class.php');
-            self::$autoloader = Lilypad_Loader_Autoloader::getInstance();
-            $class_autoloader = new Lilypad_Loader_Autoloader_Class(
+            self::$autoloader = LilypadMVC_Loader_Autoloader::getInstance();
+            $class_autoloader = new LilypadMVC_Loader_Autoloader_Class(
                 array('basepath' => dirname(__FILE__), 'namespace' => 'Lilypad')
             );
             self::$autoloader->addAutoloader($class_autoloader);
-
-            $other_autoloader = new Lilypad_Loader_Autoloader_Class(
-                array('basepath' => dirname(dirname(__FILE__)), 'namespace' => '')
-            );
-            self::$autoloader->addAutoloader($other_autoloader);
         }
         return self::$autoloader;
     }
@@ -132,4 +160,12 @@ class Lilypad_Application {
     {
         self::getAutoloader();
     }
+    
+    public static function getLogger() {
+    	if (is_null(self::$logger)) {
+    		self::$logger = new LilypadMVC_Log();
+    	}
+    	return self::$logger;
+    }
+    
 }

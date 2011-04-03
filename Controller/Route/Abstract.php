@@ -2,11 +2,11 @@
 
 
 /**
- * Abstract Lilypad_Controller_Route_Abstract class.
+ * Abstract LilypadMVC_Controller_Route_Abstract class.
  * @author Matt Ward
  * @abstract
  */
-abstract class Lilypad_Controller_Route_Abstract
+abstract class LilypadMVC_Controller_Route_Abstract
 {
     protected $name;
     
@@ -20,13 +20,13 @@ abstract class Lilypad_Controller_Route_Abstract
     
     abstract public function getRequest($uri, $query_string);
     
-    protected function _parseParams(Lilypad_Controller_Request $request, $remainder)
+    protected function _parseParams(LilypadMVC_Controller_Request $request, $remainder)
     {
     	if (empty($remainder)) {
     		return;
     	}
-    	
-    	Log::debug("Parsing:", $remainder, 'LILYPAD_DEBUG');
+    	$log = LilypadMVC_Application::getLogger();
+    	$log->debug("Parsing:", $remainder, 'LilypadMVC_DEBUG');
     	
     	if (strpos('/', $remainder) > 0) {
     		$params = explode('/', $remainder);

@@ -1,10 +1,9 @@
 <?php
-
 /**
- * Lilypad_Controller_Request class.
+ * LilypadMVC_Controller_Request class.
  * @author Matt Ward
  */
-class Lilypad_Controller_Request
+class LilypadMVC_Controller_Request
 {
 
     private $_module;
@@ -175,7 +174,6 @@ class Lilypad_Controller_Request
      */
     public function setDispatched($arg)
     {
-        Log::debug("$arg", NULL, 'LILYPAD_DEBUG');		
         $this->_dispatched = $arg;
         return $this;
     }

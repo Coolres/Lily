@@ -1,11 +1,11 @@
 <?php 
 
 /**
- * Lilypad_View_Smarty class.
+ * LilypadMVC_View_Smarty class.
  * @author Matt Ward
- * @extends Lilypad_View_Abstract
+ * @extends LilypadMVC_View_Abstract
  */
-class Lilypad_View_Smarty extends Lilypad_View_Abstract
+class LilypadMVC_View_Smarty extends LilypadMVC_View_Abstract
 {
 	protected $smarty;
 	
@@ -30,10 +30,9 @@ class Lilypad_View_Smarty extends Lilypad_View_Abstract
 		if (substr($template, '.' . $this->file_extension) == 0) {
 			$template .= '.' . $this->file_extension;
 		}
-	
-		if (defined('LILYPAD_DEBUG') && constant('LILYPAD_DEBUG')) {
-        	Log::debug("$template");
-        }
+		
+		$log = LilypadMVC_Application::getLogger();
+		$log->debug($template);
 		ob_start();
 		$this->smarty->display($template);
 		return ob_get_clean();
@@ -45,7 +44,7 @@ class Lilypad_View_Smarty extends Lilypad_View_Abstract
 	}
 	
 	public function __get($key) {
-		// No no
+		return null;
 	}
 	
 }

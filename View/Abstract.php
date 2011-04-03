@@ -1,10 +1,10 @@
 <?php 
 
 /**
- * Lilypad_View_Abstract class.
+ * LilypadMVC_View_Abstract class.
  * @author Matt Ward
  */
-class Lilypad_View_Abstract
+class LilypadMVC_View_Abstract
 {
 	private $template;
 	protected $partials_dir;
@@ -37,13 +37,12 @@ class Lilypad_View_Abstract
 	 * @return void
 	 */
 	public function render($template) {
-        if (substr($template, '.' . $this->file_extension) == 0) {
+        if (strpos($template, '.' . $this->file_extension) == 0) {
 			$template .= '.' . $this->file_extension;
 		}
         
-        if (defined('LILYPAD_DEBUG') && constant('LILYPAD_DEBUG')) {
-        	Log::debug("$template");
-        }
+		$log = LilypadMVC_Application::getLogger();
+		$log->debug($template);
         		
 		ob_start();
 		require_once($template);
@@ -63,7 +62,7 @@ class Lilypad_View_Abstract
 			$name .= '.' . $this->file_extension;
 		}
 		
-		$view	 = new Lilypad_View_Abstract($this->partials_dir);
+		$view	 = new LilypadMVC_View_Abstract($this->partials_dir);
 		$view->assignData($data)
 			->setTemplate($this->partials_dir . '/' . $name);
 		echo $view->render();
@@ -83,7 +82,7 @@ class Lilypad_View_Abstract
 		}
 		
 		foreach ($data as $i => $d) {
-			$view	 = new Lilypad_View_Abstract($this->partials_dir);
+			$view	 = new LilypadMVC_View_Abstract($this->partials_dir);
 			$view->assignData($d)
 				->setTemplate($this->partials_dir . '/' . $name);
 			echo $view->render();

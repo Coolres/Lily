@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Lilypad_Controller_Exception class.
+ * LilypadMVC_Controller_Exception class.
  * @author Matt Ward
  * @extends Exception
  */
-class Lilypad_Controller_Exception extends Exception {
+class LilypadMVC_Controller_Exception extends Exception {
     private $error_code;
     
     public function __construct($message, $errorcode=500)

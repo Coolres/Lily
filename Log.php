@@ -1,85 +1,65 @@
 <?php
 
-/**
- * Log class.
- * @author Matt Ward
- */
-class Log{
-
-	/**
-	 * Send a message to the debug log or screen dependent on environment
-	 * @param	string		$message		Message to send
-	 * @param	string		$object			Optional object to show string rep of
-	 * @param	string		$constant		If there is a constant that should be check to determine to log output
-	 */
-	public static function debug($desc, $object=NULL, $constant=NULL, $logfile=NULL)
-	{
-		
-		
-		// Check if the debug constant specified is defined and turned to true
-		if (!is_null($constant)){ 
-			if (!defined($constant) || (defined($constant) && constant($constant) == false)) {
-				return false;
-			}
-		} else {
-			// Dont post things unless configured to do so...
-			if (!defined('LOG_DEBUG_OUTPUT') || constant('LOG_DEBUG_OUTPUT') == false) {
-				return false;
-			}
-		}
-		
-		$temp		= next(debug_backtrace(false));
-		$message	= '['.date('Y-m-d H:i:s', time()).'][DEBUG]';
-		self::buildStackTrace($temp, $message, false);
+class LilypadMVC_Log implements LilypadMVC_iLog
+{
+	protected $_error_log;
+	protected $_debug_log;
+	protected $_log_debug_output;
 	
-		$message.= $desc;
-		if (!is_null($object)) {
-			$message .= PHP_EOL.print_r($object, true);
+	public function __construct($options = null) {
+		if (null !== $options) {
+			if (isset($options['error_log'])) {
+				$this->_error_log = $options['error_log'];
+			}
+			
+			if (isset($options['debug_log'])) {
+				$this->_debug_log = $options['debug_log'];
+			}
 		}
-		
-		if ($logfile) {
-			error_log($message.PHP_EOL, 3, $logfile);
-		} else if (defined('DEBUG_LOG')) {
-			error_log($message.PHP_EOL, 3, constant('DEBUG_LOG'));
+	}
+	
+	protected function writeError($message) {
+		if ($this->_error_log) {
+			error_log($message.PHP_EOL, 3, $this->_error_log);
 		} else {
 			error_log($message);
 		}
 	}
-
-	/**
-	 * error function.
-	 * 
-	 * @access public
-	 * @static
-	 * @param mixed $desc
-	 * @param mixed $object. (default: NULL)
-	 * @param bool $full_stack print the full stack
-	 * @return void
-	 */
-	public static function error($desc, $object=NULL, $full_stack=false) {
-		// TODO add some special flag for errors, maybe special log
 	
-		$back_trace = debug_backtrace(false);
-		$temp		= next($back_trace);
-		$message	= '[ERROR]';
-		self::buildStackTrace($temp, $message, true);
+	protected function writeDebug($message) {
+		if ($this->_debug_log) {
+			error_log($message.PHP_EOL, 3, $this->_debug_log);
+		}
+	}
 	
-		$message.= $desc;
-		if (!is_null($object)) {
+	public function error($message, $object=null, $constant=null) {
+		if ($constant && defined($constant) && !constant($constant)) {
+			return;
+		}
+		
+		$trace = debug_backtrace(false);
+		self::buildStackTrace(next($trace), $message);
+		
+		if (null !== $object) {
 			$message .= PHP_EOL . print_r($object, true);
 		}
-		
-		if ($full_stack) {
-			$message .= PHP_EOL . print_r(array_splice($back_trace, 1), true);
-		}
-		
-		if (defined('ERROR_LOG')) {
-			error_log($message.PHP_EOL, 3, constant('ERROR_LOG'));
-		} else {
-			error_log($message);
-		}
+		$this->writeError($message);
 	}
-
+	
+	public function debug($message, $object=null, $constant=null) {
+		if ($constant && defined($constant) && !constant($constant)) {
+			return;
+		}
+		
+		$trace = debug_backtrace(false);
+		self::buildStackTrace(next($trace), $message);
+		
+		if (null !== $object) {
+			$message .= PHP_EOL . print_r($object, true);
+		}
+		$this->writeDebug($message);
+	}
+	
 	/**
 	 * buildStackTrace function.
 	 * 
@@ -108,70 +88,15 @@ class Log{
 		$message .= ':: ';
 	}
 	
-	/**
-	 * handler function.
-	 * Conforms to php's error_handler definition. Used for routing all traffic to it
-	 * @access public
-	 * @static
-	 * @param mixed $errno
-	 * @param mixed $errstr
-	 * @param mixed $errfile. (default: NULL)
-	 * @param mixed $errline. (default: NULL)
-	 * @param mixed $context. (default: NULL)
-	 * @return void
-	 */
-	public static function handler($errno, $errstr, $errfile=NULL, $errline=NULL, $context=NULL)
-	{	
-		$cooked = "[ERROR] ";
+	public function handler($errno, $errstr, $errfile=NULL, $errline=NULL, $context=NULL)
+	{
+		$cooked = '[ERROR]';
 		if ($errfile) {
 			$cooked .= $errfile . '::' . $errline . " ";
 		}
 		$cooked .= $errstr;
   		
-  		if ($context) {
-  			$cooked . PHP_EOL . print_r($context, true);
-  		}
-  		$cooked .= PHP_EOL;
-  
-		error_log($cooked, 3, constant('ERROR_LOG'));	
+		$this->writeError($cooked, $context);
 	}
 	
-	/**
-	 * registerErrorHandler
-	 * 
-	 * @throws Exception
-	 */
-	public static function registerErrorHandler() 
-	{
-		$log = constant("ERROR_LOG");
-		if (!empty($log)) {
-			if (!file_exists($log)) {
-				$file = fopen($log, 'w');
-				fclose($file);	
-			}
-			set_error_handler("Log::handler",E_ALL);
-		} else {
-			throw new Exception("trying to figure out what path this gets called without errorlog being defined");
-		}
-	}
-	
-	/**
-	 * registerDebugHandler
-	 * 
-	 */
-	public static function registerDebugHandler() {
-		$log = constant("DEBUG_LOG");
-		if (!file_exists($log)) {
-			$file = fopen($log, 'w');
-			fclose($file);	
-		}
-	}
-	
-	public static function getDebugBacktrace($NL = "\n") {
-		ob_start();
-        debug_print_backtrace();
-    	$trace = ob_get_contents();
-    	ob_end_clean();
-		return $trace;
-	}
 }
