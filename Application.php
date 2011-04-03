@@ -1,5 +1,4 @@
 <?php
-
 /**
  * LilypadMVC_Application class.
  * @author Matt Ward
@@ -32,7 +31,7 @@ class LilypadMVC_Application {
     				if ($value instanceof LilypadMVC_iLog) {
     					self::$logger = $value;
     				} elseif (is_array($value)) {
-    					self::$logger = new LilypadMVC_Log_Abstract($value);
+    					self::$logger = new LilypadMVC_Log($value);
     				}
     					
     			break;
