@@ -1,6 +1,9 @@
 <?php
-
-
+/**
+ * Copyright (c) 2010, 2011 All rights reserved, Matt Ward
+ * This code is subject to the copyright agreement found in 
+ * the project root's LICENSE file. 
+ */
 /**
  * Abstract LilypadMVC_Controller_Route_Abstract class.
  * @author Matt Ward
