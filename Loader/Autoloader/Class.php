@@ -78,7 +78,7 @@ class LilypadMVC_Loader_Autoloader_Class
         $segments   = explode('_', $class);
         $namespace  = $this->getNamespace();
         
-        if (!is_null($namespace) && $namespace != '') {
+        if (!empty($namespace)) {
             if($namespace != array_shift($segments)) {
                 return false; // Enforcing namespace and not in namespace.
             }

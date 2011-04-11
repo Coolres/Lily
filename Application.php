@@ -19,6 +19,9 @@ class LilypadMVC_Application {
 
     public function __construct($options=NULL)
     {
+    	
+    	// Register autoloader.
+        self::getAutoloader();
     	$this->_options = $options;
     	foreach ($this->_options as $key => $value) {
     		switch ($key) {
@@ -48,10 +51,6 @@ class LilypadMVC_Application {
     	if (null !== self::$logger) {
     		set_error_handler(array(self::logger, 'handler'));
     	}
-    	
-        // Register autoloader.
-        self::getAutoloader();
-        
     }
 
 
@@ -153,7 +152,7 @@ class LilypadMVC_Application {
             require_once(dirname(__FILE__) . '/Loader/Autoloader/Class.php');
             self::$autoloader = LilypadMVC_Loader_Autoloader::getInstance();
             $class_autoloader = new LilypadMVC_Loader_Autoloader_Class(
-                array('basepath' => dirname(__FILE__), 'namespace' => 'Lilypad')
+                array('basepath' => dirname(__FILE__), 'namespace' => 'LilypadMVC')
             );
             self::$autoloader->addAutoloader($class_autoloader);
         }
