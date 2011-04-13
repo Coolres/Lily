@@ -57,6 +57,10 @@ class LilypadMVC_Controller_Action
         return $this;
     }
     
+    protected function setLayout($layout_name) {
+    	$this->_response->setLayout($layout_name);	
+    }
+    
     protected function forward($module, $controller, $action)
     {
         $this->_request->setDispatched(false)

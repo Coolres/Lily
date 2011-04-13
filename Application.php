@@ -18,8 +18,7 @@ class LilypadMVC_Application {
     private $_use_user_apc = false;
 
     public function __construct($options=NULL)
-    {
-    	
+    {  	
     	// Register autoloader.
         self::getAutoloader();
     	$this->_options = $options;
@@ -58,6 +57,7 @@ class LilypadMVC_Application {
     {
     	ob_start();
     	$dispatcher = $this->getDispatcher();
+    	$response = new LilypadMVC_Controller_Response();
     	$request = null;
     	try {
 	        if (is_null($url)){
@@ -85,7 +85,7 @@ class LilypadMVC_Application {
 		        }
 	        }
 
-	        $response = $dispatcher->dispatch($request);
+	        $response = $dispatcher->dispatch($request, $response);
 	        $response->render();
 
     	} catch (LilypadMVC_Controller_Exception $e) {
@@ -99,7 +99,7 @@ class LilypadMVC_Application {
     		if (null !== $request) {
     			$error_request->setDataType($request->getDataType());
     		}
-    		$response = $dispatcher->dispatch($error_request);
+    		$response = $dispatcher->dispatch($error_request, $response);
 	        $response->render();
     	} catch (Exception $e) {
     		ob_clean();
@@ -112,7 +112,7 @@ class LilypadMVC_Application {
     		if (null !== $request) {
     			$error_request->setDataType($request->getDataType());
     		}
-    		$response = $dispatcher->dispatch($error_request);
+    		$response = $dispatcher->dispatch($error_request, $response);
 	        $response->render();
     	}
     	ob_end_flush();

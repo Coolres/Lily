@@ -10,8 +10,7 @@
  */
 class LilypadMVC_Controller_Dispatcher
 {
-    protected $_dirs;
-    protected $_view_class;
+    protected $_modules;
     
     public function __construct($options)
     {
@@ -20,19 +19,13 @@ class LilypadMVC_Controller_Dispatcher
     			"Configuration options not set. Need controller_dir, template_dir, and partial_dir set for at least one module");
     	}
     	
-    	if (is_array($options) && isset($options['dirs'])) {
-    		if (!isset($options['dirs'])) {
+    	if (is_array($options) && isset($options['modules'])) {
+    		if (!isset($options['modules'])) {
     			throw new LilypadMVC_Controller_Exception(
     				"Configuration options not set. Need controller_dir, template_dir, and partial_dir set for at least one module");
     		}
-    		
-    		if (!isset($options['view_class'])) {
-    			$options['view_class'] = 'LilypadMVC_View_Abstract';
-    			//throw new LilypadMVC_Controller_Exception("Default view class not specified");
-    		}
-    		$this->_view_class	 = $options['view_class'];
-    		
-    		foreach ($options['dirs'] as $name => $module) {
+
+    		foreach ($options['modules'] as $name => $module) {
     			if (!isset($module['controller_dir'])) {
     				throw new LilypadMVC_Controller_Exception("'controller_dir not set for module '$name'");
     			}
@@ -44,8 +37,16 @@ class LilypadMVC_Controller_Dispatcher
     			if (!isset($module['partial_dir'])) {
     				throw new LilypadMVC_Controller_Exception("'partial_dir not set for module '$name'");
     			}
+    			
+    			if (!isset($module['layout_dir'])) {
+    				throw new LilypadMVC_Controller_Exception("'layout_dir' not set for module '$name'");
+    			}
+    			
+    			if (!isset($module['view_class'])) {
+    				$options['modules'][$name]['view_class'] = 'LilypadMVC_View_Abstract';
+    			}
     		}
-    		$this->_dirs = $options['dirs'];
+    		$this->_modules = $options['modules'];
     	}
     }
     
@@ -59,17 +60,19 @@ class LilypadMVC_Controller_Dispatcher
         return LilypadMVC_Utility::toCamelCase($string, false) . 'Action';
     }
     
-    public function dispatch(LilypadMVC_Controller_Request $request)
+    public function dispatch(LilypadMVC_Controller_Request $request, LilypadMVC_Controller_Response& $response)
     {
         if (is_null($request) || $request === false) {
             throw new LilypadMVC_Controller_Exception('Page could not be found', 404);
         }
-        
-        if (!isset($this->_dirs[$request->getModuleName()])) {
-            throw new LilypadMVC_Controller_Exception("No directories specified for '{$request->getModule()}' module.", 500);   
+        $module = $request->getModuleName();
+        if (!isset($this->_modules[$module])) {
+            throw new LilypadMVC_Controller_Exception("No directories specified for '{$module}' module.", 500);   
         }
-            
-        $response = new LilypadMVC_Controller_Response();
+        
+        if (null === $response) {
+        	$response = new LilypadMVC_Controller_Response();
+        }
         $log = LilypadMVC_Application::getLogger();
         
         for ($i=0; $i < 4; $i++) {
@@ -77,10 +80,13 @@ class LilypadMVC_Controller_Dispatcher
         		break;
         	}
         	
-        	$controller_dir		= $this->_dirs[$request->getModuleName()]['controller_dir'];
-        	$template_dir		= $this->_dirs[$request->getModuleName()]['template_dir'];
+        	$controller_dir		= $this->_modules[$module]['controller_dir'];
+        	$template_dir		= $this->_modules[$module]['template_dir'];
+        	$layout_dir			= $this->_modules[$module]['layout_dir'];
+        	$partial_dir		= $this->_modules[$module]['partial_dir'];
+        	$view_class			= $this->_modules[$module]['view_class'];
         	$response->setTemplateDir($template_dir);
-        	$partial_dir		= $this->_dirs[$request->getModuleName()]['partial_dir'];
+        	$response->setLayoutDir($layout_dir);
         	
         	$controller_class	= $this->formatControllerName($request->getControllerName());
         	$controller_path	= $controller_dir . '/' . $controller_class . '.php';
@@ -112,6 +118,7 @@ class LilypadMVC_Controller_Dispatcher
         				$view	= new LilypadMVC_View_Abstract($partial_dir);
         				$response->setView($view);
         				$response->setTemplate('json');
+        				$response->setLayout(null);
         				$response->addHeader('Content-Type: application/json; charset=utf-8');
 						break;
 						
@@ -119,6 +126,7 @@ class LilypadMVC_Controller_Dispatcher
 						$view	= new LilypadMVC_View_Abstract($partial_dir);
         				$response->setView($view);
         				$response->setTemplate('jsonp');
+        				$response->setLayout(null);
         				$response->addHeader('Content-Type: text/html');
 						break;
 			
@@ -126,11 +134,15 @@ class LilypadMVC_Controller_Dispatcher
 						$response->addHeader('Content-Type: text/css');
 						
 					default:
-						$template_path = ucfirst($request->getControllerName())
-            				. '/' . strtolower($request->getActionName());	
-            			$view	= new $this->_view_class($partial_dir);
+            			$view	= new $view_class($partial_dir);
         				if (null === $response->getTemplate()) {
+        					$template_path = ucfirst($request->getControllerName())
+            				. '/' . strtolower($request->getActionName());
 							$response->setTemplate($template_path);
+						}
+						
+						if (null === $response->getLayout()) {
+							$response->setLayout('Main');
 						}
             			$response->setView($view);
 						break;
@@ -146,7 +158,4 @@ class LilypadMVC_Controller_Dispatcher
         
         return $response;
     }
-
-
-
 }

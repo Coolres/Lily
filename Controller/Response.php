@@ -16,6 +16,8 @@ class LilypadMVC_Controller_Response
     private $_view;
     private $_template;
     private $_template_dir;
+    private $_layout;
+    private $_layout_dir;
     private $_should_render;
     private $_cookies;
     
@@ -25,7 +27,6 @@ class LilypadMVC_Controller_Response
         $this->_data	= array();
         $this->_cookie	= array();
         $this->_should_render = true;
-        
     }
     
     public function assign($key, $data) {
@@ -69,8 +70,26 @@ class LilypadMVC_Controller_Response
     	$this->_template_dir = $dir;
     }
     
-    public function getTemplateDir($dir) {
+    public function getTemplateDir() {
     	return $this->_template_dir;
+    }
+    
+    public function setLayoutDir($dir) {
+    	$this->_layout_dir = $dir;
+    	return $this;
+    }
+    
+    public function getLayoutDir() {
+    	return $this->_layout_dir;
+    }
+    
+    public function setLayout($arg) {
+    	$this->_layout = $arg;
+    	return $this;
+    }
+    
+    public function getLayout() {
+    	return $this->_layout;	
     }
     
     public function setView($view) {
@@ -99,22 +118,29 @@ class LilypadMVC_Controller_Response
      			$this->_view->$key = $value;
      		}
         	$log->debug("{$this->_template}", null, 'LilypadMVC_DEBUG');
-     		$temp	= $this->_view->render($this->_template_dir . '/' . $this->_template);     		
+     		$temp	= $this->_view->render($this->_template_dir . '/' . $this->_template); 
+     		$this->_content = $temp . $this->_content;
      	}
      	
-    	// Spit out headers before sending content
+        if ($this->_should_render && $this->_layout) {
+        	$this->_view->head = '';
+        	$this->_view->content = $this->_content;
+        	$this->_content = $this->_view->render($this->_layout_dir . '/' . $this->_layout);
+        }
+        
+		// Spit out headers before sending content
      	if (!empty($this->_headers)) {
 	     	foreach ($this->_headers as $header) { 	
 	     		header($header);
 	     	}
      	}
-     	
-   		if (!empty($this->_cookie)) {
+        
+        if (!empty($this->_cookie)) {
 	     	foreach ($this->_cookie as $name => $payload) {
 	     		setcookie($name, $payload['value'], $payload['ttl'], '/');	
 	     	}
      	}
      	
-        echo $temp . $this->_content;
+		echo $this->_content;     	
     }
 }
