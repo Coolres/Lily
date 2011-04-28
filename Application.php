@@ -1,8 +1,8 @@
 <?php
 /**
  * Copyright (c) 2010, 2011 All rights reserved, Matt Ward
- * This code is subject to the copyright agreement found in 
- * the project root's LICENSE file. 
+ * This code is subject to the copyright agreement found in
+ * the project root's LICENSE file.
  */
 /**
  * LilypadMVC_Application class.
@@ -18,7 +18,7 @@ class LilypadMVC_Application {
     private $_use_user_apc = false;
 
     public function __construct($options=NULL)
-    {  	
+    {
     	// Register autoloader.
         self::getAutoloader();
     	$this->_options = $options;
@@ -27,28 +27,28 @@ class LilypadMVC_Application {
     			case 'use_user_apc':
     				$this->_use_user_apc = $value;
     			break;
-    			
+
     			case 'autoloader':
     				if ($value instanceof LilypadMVC_Loader_Autoloader) {
     					self::$autoloader = $value;
     				}
     			break;
-    			
+
     			case 'logger':
     				if ($value instanceof LilypadMVC_iLog) {
     					self::$logger = $value;
     				} elseif (is_array($value)) {
     					self::$logger = new LilypadMVC_Log($value);
     				}
-    					
+
     			break;
-    			
+
     			default: break;
     		}
     	}
-    	
+
     	if (null !== self::$logger) {
-    		set_error_handler(array(self::logger, 'handler'));
+    		set_error_handler(array(self::$logger, 'handler'));
     	}
     }
 
@@ -163,12 +163,12 @@ class LilypadMVC_Application {
     {
         self::getAutoloader();
     }
-    
+
     public static function getLogger() {
     	if (is_null(self::$logger)) {
     		self::$logger = new LilypadMVC_Log();
     	}
     	return self::$logger;
     }
-    
+
 }

@@ -1,8 +1,8 @@
-<?php 
+<?php
 /**
  * Copyright (c) 2010, 2011 All rights reserved, Matt Ward
- * This code is subject to the copyright agreement found in 
- * the project root's LICENSE file. 
+ * This code is subject to the copyright agreement found in
+ * the project root's LICENSE file.
  */
 /**
  * LilypadMVC_View_Abstract class.
@@ -13,16 +13,16 @@ class LilypadMVC_View_Abstract
 	private $template;
 	protected $partials_dir;
 	protected $file_extension;	// will want different file extension to distinguish between smarty and other template engines
-	
+
 	public function __construct($partials_dir)
 	{
 		$this->partials_dir	= $partials_dir;
 		$this->file_extension	= "phtml";
 	}
-	
+
 	/**
 	 * assignData function.
-	 * 
+	 *
 	 * @access public
 	 * @param mixed array& $data
 	 * @return void
@@ -33,10 +33,10 @@ class LilypadMVC_View_Abstract
 		}
 		return $this;
 	}
-	
+
 	/**
 	 * render function.
-	 * 
+	 *
 	 * @access public
 	 * @return void
 	 */
@@ -44,18 +44,18 @@ class LilypadMVC_View_Abstract
         if (strpos($template, '.' . $this->file_extension) == 0) {
 			$template .= '.' . $this->file_extension;
 		}
-        
+
 		$log = LilypadMVC_Application::getLogger();
-		$log->debug($template);
-        		
+		$log->debug($template, null, 'LilypadMVC_DEBUG');
+
 		ob_start();
-		require_once($template);
+		require($template);
 		return ob_get_clean();
 	}
-	
+
 	/**
 	 * partial function.
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $name
 	 * @param mixed $data. (default: NULL)
@@ -65,16 +65,16 @@ class LilypadMVC_View_Abstract
 		if (substr($name, '.' . $this->file_extension) == 0) {
 			$name .= '.' . $this->file_extension;
 		}
-		
+
 		$view	 = new LilypadMVC_View_Abstract($this->partials_dir);
 		$view->assignData($data)
 			->setTemplate($this->partials_dir . '/' . $name);
 		echo $view->render();
 	}
-	
+
 	/**
 	 * partialLoop function.
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $name
 	 * @param mixed $data
@@ -84,7 +84,7 @@ class LilypadMVC_View_Abstract
 		if (substr($name, '.' . $this->file_extension) == 0) {
 			$name .= '.' . $this->file_extension;
 		}
-		
+
 		foreach ($data as $i => $d) {
 			$view	 = new LilypadMVC_View_Abstract($this->partials_dir);
 			$view->assignData($d)
