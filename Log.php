@@ -28,7 +28,7 @@ class LilypadMVC_Log implements LilypadMVC_iLog
 		}
 	}
 
-	protected function writeError($message) {
+	public function writeError($message) {
 		if ($this->_error_log) {
 			error_log($message.PHP_EOL, 3, $this->_error_log);
 		} else {
@@ -36,7 +36,7 @@ class LilypadMVC_Log implements LilypadMVC_iLog
 		}
 	}
 
-	protected function writeDebug($message) {
+	public function writeDebug($message) {
 		if ($this->_debug_log) {
 			error_log($message.PHP_EOL, 3, $this->_debug_log);
 		}
@@ -94,9 +94,9 @@ class LilypadMVC_Log implements LilypadMVC_iLog
 		}
 
 		// Not workign as expected. Will debug later...
-		//if (isset($stack['line']) && $line_number) {
-		//	$message .= '[' . $stack['line'] . ']';
-		//}
+//		if (isset($stack['line']) && $line_number) {
+//			$message .= '[' . $stack['line'] . ']';
+//		}
 
 		$message = $temp.':: ' . $message;
 	}
