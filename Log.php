@@ -93,11 +93,6 @@ class LilypadMVC_Log implements LilypadMVC_iLog
 			$temp .= $stack['file'];
 		}
 
-		// Not workign as expected. Will debug later...
-//		if (isset($stack['line']) && $line_number) {
-//			$message .= '[' . $stack['line'] . ']';
-//		}
-
 		$message = $temp.':: ' . $message;
 	}
 
@@ -108,6 +103,10 @@ class LilypadMVC_Log implements LilypadMVC_iLog
 			$cooked .= $errfile . '::' . $errline . " ";
 		}
 		$cooked .= $errstr;
+
+		$trace = debug_backtrace(false);
+		$temp = next($trace);
+		self::buildStackTrace($temp, $cooked);
 
 		$this->error($cooked);
 	}
