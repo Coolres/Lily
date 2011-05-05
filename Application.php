@@ -52,7 +52,6 @@ class LilypadMVC_Application {
     	}
     }
 
-
     public function run($url=NULL)
     {
     	ob_start();

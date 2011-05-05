@@ -27,9 +27,11 @@ class LilypadMVC_View_Abstract
 	 * @param mixed array& $data
 	 * @return void
 	 */
-	public function assignData(array& $data) {
-		foreach ($data as $key => $value) {
-			$this->$key = $value;
+	public function assignData($data) {
+		if (!empty($data)) {
+			foreach ($data as $key => $value) {
+				$this->$key = $value;
+			}
 		}
 		return $this;
 	}
@@ -62,14 +64,13 @@ class LilypadMVC_View_Abstract
 	 * @return void
 	 */
 	public function partial($name, $data=NULL) {
-		if (substr($name, '.' . $this->file_extension) == 0) {
+		if (strpos($name, '.' . $this->file_extension) == 0) {
 			$name .= '.' . $this->file_extension;
 		}
 
 		$view	 = new LilypadMVC_View_Abstract($this->partials_dir);
-		$view->assignData($data)
-			->setTemplate($this->partials_dir . '/' . $name);
-		echo $view->render();
+		$view->assignData($data);
+		echo $view->render($this->partials_dir . '/' . $name);
 	}
 
 	/**
