@@ -38,4 +38,29 @@ class LilypadMVC_Utility
 		return $final;
 	}
 	
+	/**
+	 * Determines the character set of the passed in string.
+	 * If the string is NOT utf-8, it will encode the string to utf8
+	 * necessary for json_encode (everything must be utf8)
+	 */
+	public static function fixEncoding ($in_str)
+	{
+		if (is_array($in_str)) {
+			$temp = array();
+			foreach ($in_str as $key => $value) {
+				$key = Utility::fixEncoding($key);
+				$value = Utility::fixEncoding($value);
+				$temp[$key] = $value;
+			}
+			return $temp;
+		} else {
+			$cur_encoding = mb_detect_encoding($in_str);
+			if ($cur_encoding == "UTF-8" && mb_check_encoding($in_str, "UTF-8"))
+				return $in_str;
+			else
+				return utf8_encode($in_str);
+		}
+	}
+	
+	
 }
