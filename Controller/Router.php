@@ -5,10 +5,10 @@
  * the project root's LICENSE file. 
  */
 /**
- * LilypadMVC_Controller_Router class.
+ * Lily_Controller_Router class.
  * @author Matt Ward
  */
-class LilypadMVC_Controller_Router 
+class Lily_Controller_Router 
 {
     private $_routes;
     
@@ -17,11 +17,11 @@ class LilypadMVC_Controller_Router
         $this->_routes = array();
     }
    
-    public function addRoute(LilypadMVC_Controller_Route_Abstract $route) {
+    public function addRoute(Lily_Controller_Route_Abstract $route) {
     	$this->_routes[] = $route;
     }
     
-    public function setDefaultRoute(LilypadMVC_Controller_Route_Abstract $route) {
+    public function setDefaultRoute(Lily_Controller_Route_Abstract $route) {
         $this->_default = $route;
     }
 
@@ -31,8 +31,7 @@ class LilypadMVC_Controller_Router
     	$url = isset($t[0]) ? $t[0] : '';
     	$query_string = isset($t[1]) ? $t[1] : '';
     
-    	$log = LilypadMVC_Application::getLogger();
-    	$log->debug("trying to find match for $url $query_string ", NULL, 'LilypadMVC_DEBUG');
+    	Lily_Log::write('lily', "trying to find match for $url $query_string ");
 
         $reversed = array_reverse($this->_routes);
         foreach($reversed as $route) {

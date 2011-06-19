@@ -2,7 +2,7 @@
 /**
  * @author Matt Ward
  */
-class LilypadMVC_Loader_Autoloader
+class Lily_Loader_Autoloader
 {
     private static $_instance;
     private $_autoloaders;
@@ -15,7 +15,7 @@ class LilypadMVC_Loader_Autoloader
         spl_autoload_register(array(__CLASS__, 'autoload'));
     }
 
-    public function addAutoloader(LilypadMVC_Loader_Autoloader_Interface& $interface)
+    public function addAutoloader(Lily_Loader_Autoloader_Interface& $interface)
     {
         $this->_autoloaders[] = $interface;
     }

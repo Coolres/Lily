@@ -5,11 +5,11 @@
  * the project root's LICENSE file. 
  */
 /**
- * LilypadMVC_Utility
+ * Lily_Utility
  * @author matt
  *
  */
-class LilypadMVC_Utility
+class Lily_Utility
 {
 	
 	public static function fromCamelCase ($string, $leading_underscore = false)

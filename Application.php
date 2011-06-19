@@ -5,70 +5,103 @@
  * the project root's LICENSE file.
  */
 /**
- * LilypadMVC_Application class.
+ * Lily_Application class.
  * @author Matt Ward
  */
-class LilypadMVC_Application {
+class Lily_Application {
 
+	private static $instance;
     private static $autoloader;
-    private static $logger;
+	private $_options;
     private $_router;
     private $_dispatcher;
-    private $_options;
-    private $_use_user_apc = false;
+	
+	private $_use_apc;
+	private $_controller_dir;
+	private $_template_dir;
+	private $_partial_dir;
 
-    public function __construct($options=NULL)
+	private $_registry;
+
+    public function __construct(Lily_Config_Ini $ini)
     {
-    	// Register autoloader.
-        self::getAutoloader();
-    	$this->_options = $options;
-    	foreach ($this->_options as $key => $value) {
-    		switch ($key) {
-    			case 'use_user_apc':
-    				$this->_use_user_apc = $value;
-    			break;
-
-    			case 'autoloader':
-    				if ($value instanceof LilypadMVC_Loader_Autoloader) {
-    					self::$autoloader = $value;
-    				}
-    			break;
-
-    			case 'logger':
-    				if ($value instanceof LilypadMVC_iLog) {
-    					self::$logger = $value;
-    				} elseif (is_array($value)) {
-    					self::$logger = new LilypadMVC_Log($value);
-    				}
-
-    			break;
-
-    			default: break;
-    		}
-    	}
-
-    	if (null !== self::$logger) {
-    		set_error_handler(array(self::$logger, 'handler'));
-    	}
+    	self::getAutoloader();
+		self::$instance = $this;
+		
+		$this->_registry = Lily_Registry::getInstance();
+		
+		// I can either iterate through all ini, 
+		// or pick out the ones this system will care about
+		foreach ($ini->get() as $module => $payload) {
+			switch ($module) {
+				
+				case 'lilypad':
+					$this->init($payload);
+					break;
+					
+				case 'log' :
+					$logger = new Lily_Log($payload);
+					Lily_Log::registerErrorHandler();
+					$this->_registry->set('log', $logger);
+					break;
+					
+				case 'thrift' :
+					$manager = new Lily_Thrift_Manager($payload);
+					$this->_registry->set('Thrift_Manager', $manager);
+					break;
+					
+				case 'xmlrpc' :
+					// TODO
+					break;
+					
+				case 'jsonrpc' :
+					//TODO
+					break;
+				
+				case 'database' :
+					$manager = new Lily_Database_Manager($payload);
+					$this->_registry->set('Database_Manager', $manager);
+					break;
+				
+				case 'memcached' :
+					$manager = new Lily_Memcached_Manager($payload);
+					$this->_registry->set('Memcached_Manager', $manager);
+					break;
+				
+				case 'constant' :
+					foreach ($payload as $key => $value) {
+						if (!defined($key)) define($key, $value);
+					}
+					
+				default: break;
+			}
+		}
     }
+
+	private function init($options) {
+		$this->_use_apc = isset($options['apc']) ? $options['apc'] : false;
+		if (isset($options['dispatcher'])) {
+			$this->_dispatcher = new Lily_Controller_Dispatcher($options['dispatcher']);
+		}
+	}
 
     public function run($url=NULL)
     {
     	ob_start();
     	$dispatcher = $this->getDispatcher();
-    	$response = new LilypadMVC_Controller_Response();
+    	$response = new Lily_Controller_Response();
     	$request = null;
     	try {
 	        if (is_null($url)){
 	        	if (!isset($_SERVER['REQUEST_URI'])) {
-	        		throw new LilypadMVC_Controller_Exception("URL not specified and SERVER Request URI not set", 500);
+	        		throw new Lily_Controller_Exception("URL not specified and SERVER Request URI not set", 500);
 	        	}
 	        	$url = $_SERVER['REQUEST_URI'];
 	        }
 
 			$success = false;
 	        // APC optimizations
-	        if ($this->_use_user_apc) {
+	        if ($this->_use_apc) {
 	        	$temp = apc_fetch($url, $success);
 	        }
 	        if ($success) {
@@ -76,9 +109,9 @@ class LilypadMVC_Application {
 	        } else {
 		        $request = $this->getRouter()->match($url);
 		        if ($request === false) {
-		            throw new LilypadMVC_Controller_Exception("Could not find an appropriate route. 404", 404);
+		            throw new Lily_Controller_Exception("Could not find an appropriate route. 404", 404);
 		        } else {
-		        	if ($this->_use_user_apc) {
+		        	if ($this->_use_apc) {
 		        		apc_store($url, $request, 3600);
 		        	}
 		        }
@@ -87,9 +120,9 @@ class LilypadMVC_Application {
 	        $response = $dispatcher->dispatch($request, $response);
 	        $response->render();
 
-    	} catch (LilypadMVC_Controller_Exception $e) {
+    	} catch (Lily_Controller_Exception $e) {
     		ob_clean();
-    		$error_request = new LilypadMVC_Controller_Request();
+    		$error_request = new Lily_Controller_Request();
     		$error_request->setModule('default')
     					->setController('error')
     					->setAction('error')
@@ -102,7 +135,7 @@ class LilypadMVC_Application {
 	        $response->render();
     	} catch (Exception $e) {
     		ob_clean();
-    		$error_request = new LilypadMVC_Controller_Request();
+    		$error_request = new Lily_Controller_Request();
     		$error_request->setModule('default')
     					->setController('error')
     					->setAction('error')
@@ -120,12 +153,12 @@ class LilypadMVC_Application {
     public function getDispatcher()
     {
         if (is_null($this->_dispatcher)) {
-            $this->_dispatcher = new LilypadMVC_Controller_Dispatcher($this->_options);
+            $this->_dispatcher = new Lily_Controller_Dispatcher($this->_options);
         }
         return $this->_dispatcher;
     }
 
-    public function addRoute(LilypadMVC_Controller_Route_Abstract $route)
+    public function addRoute(Lily_Controller_Route_Abstract $route)
     {
         $router = $this->getRouter();
         $router->addRoute($route);
@@ -137,8 +170,8 @@ class LilypadMVC_Application {
         if (is_null($this->_router))
         {
         	require_once(dirname(__FILE__) . '/Controller/Router.php');
-            $this->_router = new LilypadMVC_Controller_Router($this->_options);
-            $route = new LilypadMVC_Controller_Route_Default();
+            $this->_router = new Lily_Controller_Router($this->_options);
+            $route = new Lily_Controller_Route_Default();
             $this->_router->addRoute($route);
         }
         return $this->_router;
@@ -149,11 +182,16 @@ class LilypadMVC_Application {
         if (is_null(self::$autoloader)) {
             require_once(dirname(__FILE__) . '/Loader/Autoloader.php');
             require_once(dirname(__FILE__) . '/Loader/Autoloader/Class.php');
-            self::$autoloader = LilypadMVC_Loader_Autoloader::getInstance();
-            $class_autoloader = new LilypadMVC_Loader_Autoloader_Class(
-                array('basepath' => dirname(__FILE__), 'namespace' => 'LilypadMVC')
+            self::$autoloader = Lily_Loader_Autoloader::getInstance();
+            $class_autoloader = new Lily_Loader_Autoloader_Class(
+                array('basepath' => dirname(__FILE__), 'namespace' => 'Lily')
             );
             self::$autoloader->addAutoloader($class_autoloader);
+			
+			$other_autoloader = new Lily_Loader_Autoloader_Class(
+                array('basepath' => dirname(dirname(__FILE__)), 'namespace' => '')
+            );
+            self::$autoloader->addAutoloader($other_autoloader);
         }
         return self::$autoloader;
     }
@@ -162,12 +200,4 @@ class LilypadMVC_Application {
     {
         self::getAutoloader();
     }
-
-    public static function getLogger() {
-    	if (is_null(self::$logger)) {
-    		self::$logger = new LilypadMVC_Log();
-    	}
-    	return self::$logger;
-    }
-
 }

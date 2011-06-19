@@ -5,11 +5,11 @@
  * the project root's LICENSE file. 
  */
 /**
- * Abstract LilypadMVC_Controller_Route_Abstract class.
+ * Abstract Lily_Controller_Route_Abstract class.
  * @author Matt Ward
  * @abstract
  */
-abstract class LilypadMVC_Controller_Route_Abstract
+abstract class Lily_Controller_Route_Abstract
 {
     protected $name;
     
@@ -23,13 +23,12 @@ abstract class LilypadMVC_Controller_Route_Abstract
     
     abstract public function getRequest($uri, $query_string);
     
-    protected function _parseParams(LilypadMVC_Controller_Request $request, $remainder)
+    protected function _parseParams(Lily_Controller_Request $request, $remainder)
     {
     	if (empty($remainder)) {
     		return;
     	}
-    	$log = LilypadMVC_Application::getLogger();
-    	$log->debug("Parsing:", $remainder, 'LilypadMVC_DEBUG');
+    	Lily_Log::write("lily", "Parsing:", $remainder);
     	
     	if (strpos('/', $remainder) > 0) {
     		$params = explode('/', $remainder);

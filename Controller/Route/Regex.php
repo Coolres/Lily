@@ -5,11 +5,11 @@
  * the project root's LICENSE file. 
  */
 /**
- * LilypadMVC_Controller_Route_Regex class.
+ * Lily_Controller_Route_Regex class.
  * @author Matt Ward
- * @extends LilypadMVC_Controller_Route_Abstract
+ * @extends Lily_Controller_Route_Abstract
  */
-class LilypadMVC_Controller_Route_Regex extends LilypadMVC_Controller_Route_Abstract
+class Lily_Controller_Route_Regex extends Lily_Controller_Route_Abstract
 {
     private $_regex;
     private $map;
@@ -33,10 +33,10 @@ class LilypadMVC_Controller_Route_Regex extends LilypadMVC_Controller_Route_Abst
         $this->name = $name;
         $this->_regex = $regex;
         if (!isset($map['controller'])) {
-            throw new LilypadMVC_Controller_Route_Exception("Controller not specified");
+            throw new Lily_Controller_Route_Exception("Controller not specified");
         }
         if (!isset($map['action'])) {
-            throw new LilypadMVC_Controller_Route_Exception("Action not specified");
+            throw new Lily_Controller_Route_Exception("Action not specified");
         }
         
         if (!isset($map['module'])) $map['module'] = 'default';
@@ -47,11 +47,10 @@ class LilypadMVC_Controller_Route_Regex extends LilypadMVC_Controller_Route_Abst
     
     public function match($uri)
     {
-    	$log = LilypadMVC_Application::getLogger();
-    	$log->debug("Trying to match $uri against {$this->_regex}", NULL, 'LilypadMVC_DEBUG');
+    	Lily_Log::write("lily","Trying to match $uri against {$this->_regex}");
     
         if (preg_match($this->_regex, $uri, $this->matches)) {
-	    	$log->debug('Match found.', $this->matches, 'LilypadMVC_DEBUG');
+        	Lily_Log::write("lily", 'Match found.', $this->matches);
             return true;   
         }
         return false;
@@ -60,7 +59,7 @@ class LilypadMVC_Controller_Route_Regex extends LilypadMVC_Controller_Route_Abst
     
     public function getRequest($uri, $query_string)
     {
-    	$request = new LilypadMVC_Controller_Request();
+    	$request = new Lily_Controller_Request();
     	
     	foreach ($this->map as $name => $value) {
     		if (substr($value, 0, 1) == ':') {

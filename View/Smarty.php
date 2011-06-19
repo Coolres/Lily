@@ -5,29 +5,29 @@
  * the project root's LICENSE file.
  */
 /**
- * LilypadMVC_View_Smarty class.
+ * Lily_View_Smarty class.
  * @author Matt Ward
- * @extends LilypadMVC_View_Abstract
+ * @extends Lily_View_Abstract
  */
-class LilypadMVC_View_Smarty extends LilypadMVC_View_Abstract
+class Lily_View_Smarty extends Lily_View_Abstract
 {
 	protected $smarty;
 
 
-	public function __construct($partials_dir)
+	public function __construct($options=array())
 	{
-		parent::__construct($partials_dir);
-		$this->file_extension	= 'tpl';
-
-		if (!defined('SMARTY_LIB')) {
-			throw new Exception("The 'SMARTY_LIB' constant is not defined and required to use a smarty view");
+		if (is_array($options)) {
+			if (isset($options['smarty'])) {
+				require_once($options['smarty'] . '/libs/Smarty.class.php');
+			} else {
+				throw new Lilypad_Configuration_Exception('lilypad.dispatcher.modules.$module.view.smarty');
+			}
 		}
-		require_once(constant('SMARTY_LIB') . '/libs/Smarty.class.php');
-
+		parent::__construct($options);
+		$this->file_extension	= 'tpl';
 		$this->smarty	= new Smarty();
 		$this->smarty->language = 'en';
-		$this->smarty->assign('PARTIAL_DIR', $partials_dir);
-
+		$this->smarty->assign('PARTIAL_DIR', $this->partials_dir);        
 	}
 
 	public function render($template) {
@@ -35,7 +35,7 @@ class LilypadMVC_View_Smarty extends LilypadMVC_View_Abstract
 			$template .= '.' . $this->file_extension;
 		}
 
-		$log = LilypadMVC_Application::getLogger();
+		$log = Lily_Application::getLogger();
 		$log->debug($template);
 		ob_start();
 		$this->smarty->display($template);

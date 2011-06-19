@@ -5,15 +5,15 @@
  * the project root's LICENSE file. 
  */
 /**
- * LilypadMVC_Controller_Action class.
+ * Lily_Controller_Action class.
  * @author Matt Ward
  */
-class LilypadMVC_Controller_Action
+class Lily_Controller_Action
 {
     protected $_request;
     protected $_response;
 
-    public function __construct(LilypadMVC_Controller_Request& $request, LilypadMVC_Controller_Response& $response){
+    public function __construct(Lily_Controller_Request& $request, Lily_Controller_Response& $response){
         // Instantiate smarty here.
         
         $this->_request     = $request;
@@ -28,7 +28,7 @@ class LilypadMVC_Controller_Action
 		$this->_response->assign($key, $value);
 	}
     
-    public function setResponse(LilypadMVC_Controller_Response $response) {
+    public function setResponse(Lily_Controller_Response $response) {
     	$this->_response = $response;
     }
     

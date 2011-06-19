@@ -5,19 +5,17 @@
  * the project root's LICENSE file. 
  */
 /**
- * LilypadMVC_Controller_Response class.
+ * Lily_Controller_Response class.
  * @author Matt Ward
  */
-class LilypadMVC_Controller_Response
+class Lily_Controller_Response
 {
     private $_headers;
  	private $_content;
  	private $_data;   
     private $_view;
     private $_template;
-    private $_template_dir;
     private $_layout;
-    private $_layout_dir;
     private $_should_render;
     private $_cookies;
     
@@ -66,23 +64,6 @@ class LilypadMVC_Controller_Response
     	return $this->_template;
     }
     
-    public function setTemplateDir($dir) {
-    	$this->_template_dir = $dir;
-    }
-    
-    public function getTemplateDir() {
-    	return $this->_template_dir;
-    }
-    
-    public function setLayoutDir($dir) {
-    	$this->_layout_dir = $dir;
-    	return $this;
-    }
-    
-    public function getLayoutDir() {
-    	return $this->_layout_dir;
-    }
-    
     public function setLayout($arg) {
     	$this->_layout = $arg;
     	return $this;
@@ -112,22 +93,21 @@ class LilypadMVC_Controller_Response
     public function render() {	
     	$temp = '';
     	
-    	$log = LilypadMVC_Application::getLogger();
      	if ($this->_should_render && $this->_view) {
      		foreach ($this->_data as $key => $value) { 
      			$this->_view->$key = $value;
      		}
-        	$log->debug("{$this->_template}", null, 'LilypadMVC_DEBUG');
-     		$temp	= $this->_view->render($this->_template_dir . '/' . $this->_template); 
+        	Lily_Log::write("lily","{$this->_template}");
+     		$temp	= $this->_view->render($this->_template); 
      		$this->_content = $temp . $this->_content;
+			
+			if ($this->_layout) {
+	        	$this->_view->head = '';
+	        	$this->_view->content = $this->_content;
+	        	$this->_content = $this->_view->render($this->_layout);
+	        }
      	}
      	
-        if ($this->_should_render && $this->_layout) {
-        	$this->_view->head = '';
-        	$this->_view->content = $this->_content;
-        	$this->_content = $this->_view->render($this->_layout_dir . '/' . $this->_layout);
-        }
-        
 		// Spit out headers before sending content
      	if (!empty($this->_headers)) {
 	     	foreach ($this->_headers as $header) { 	

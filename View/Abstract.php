@@ -5,21 +5,22 @@
  * the project root's LICENSE file.
  */
 /**
- * LilypadMVC_View_Abstract class.
+ * Lily_View_Abstract class.
  * @author Matt Ward
  */
-class LilypadMVC_View_Abstract
+class Lily_View_Abstract
 {
 	private $template;
 	protected $partials_dir;
 	protected $file_extension;	// will want different file extension to distinguish between smarty and other template engines
 
-	public function __construct($partials_dir)
+	public function __construct($options=array())
 	{
-		$this->partials_dir	= $partials_dir;
+		if (isset($options['partials'])) {
+			$this->partials_dir = $options['partials'];
+		}
 		$this->file_extension	= "phtml";
 	}
-
 	/**
 	 * assignData function.
 	 *
@@ -27,11 +28,9 @@ class LilypadMVC_View_Abstract
 	 * @param mixed array& $data
 	 * @return void
 	 */
-	public function assignData($data) {
-		if (!empty($data)) {
-			foreach ($data as $key => $value) {
-				$this->$key = $value;
-			}
+	public function assignData(array& $data) {
+		foreach ($data as $key => $value) {
+			$this->$key = $value;
 		}
 		return $this;
 	}
@@ -47,8 +46,8 @@ class LilypadMVC_View_Abstract
 			$template .= '.' . $this->file_extension;
 		}
 
-		$log = LilypadMVC_Application::getLogger();
-		$log->debug($template, null, 'LilypadMVC_DEBUG');
+		$log = Lily_Application::getLogger();
+		$log->debug($template, null, 'Lily_DEBUG');
 
 		ob_start();
 		require($template);
@@ -68,7 +67,9 @@ class LilypadMVC_View_Abstract
 			$name .= '.' . $this->file_extension;
 		}
 
-		$view	 = new LilypadMVC_View_Abstract($this->partials_dir);
+		$view	 = new Lily_View_Abstract(array(
+			'partials'	=> $this->partials_dir
+		));
 		$view->assignData($data);
 		echo $view->render($this->partials_dir . '/' . $name);
 	}
@@ -87,10 +88,11 @@ class LilypadMVC_View_Abstract
 		}
 
 		foreach ($data as $i => $d) {
-			$view	 = new LilypadMVC_View_Abstract($this->partials_dir);
-			$view->assignData($d)
-				->setTemplate($this->partials_dir . '/' . $name);
-			echo $view->render();
+			$view	 = new Lily_View_Abstract(array(
+				'partials'	=> $this->partials_dir
+			));
+			$view->assignData($d);
+			echo $view->render($this->partials_dir . '/' . $name);
 		}
 	}
 }

@@ -1,75 +1,114 @@
 <?php
+
 /**
- * Copyright (c) 2010, 2011 All rights reserved, Matt Ward
- * This code is subject to the copyright agreement found in
- * the project root's LICENSE file.
- */
-/**
- *
- * LilypadMVC_Log
+ * Log class.
  * @author Matt Ward
- *
  */
-class LilypadMVC_Log implements LilypadMVC_iLog
-{
-	protected $_error_log;
-	protected $_debug_log;
-	protected $_log_debug_output;
-
-	public function __construct($options = null) {
-		if (null !== $options) {
-			if (isset($options['error_log'])) {
-				$this->_error_log = $options['error_log'];
-			}
-
-			if (isset($options['debug_log'])) {
-				$this->_debug_log = $options['debug_log'];
+class Lily_Log {
+	
+	// For use with plugin pattern in LIlypad MVC
+	private static $instance;
+	
+	private $roles = null;
+	
+	public function __construct($options) {
+		if (self::$instance !== null) {
+			throw new Exception("Instance of Lily_Log already instantiated");
+		}
+		
+		if (is_array($options)) {
+			$this->roles = $options;
+			foreach ($options as $role => $props) {
+				if (!isset($props['location'])) {
+					throw new Exception("Log role '$role' location not defined.");
+				} else {
+					self::initFile($props['location']);
+				}
 			}
 		}
+		self::$instance = $this;
+	}
+	
+	public static function write($formatted_role, $desc, $object=null) {
+		if (null === self::$instance) {
+			throw new Exception("Log instance not configured");
+		}
+		$temp		= next(debug_backtrace(false));
+		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
+		
+		self::buildStackTrace($temp, $message, false);
+		$message .= $desc;
+		if ($object) {
+			$message .= print_r($object, true);
+		}
+		$message .= PHP_EOL;
+		self::$instance->writeByRole($formatted_role, $message);		
+	}
+	/**
+	 * Send a message to the debug log or screen dependent on environment
+	 * @param	string		$message		Message to send
+	 * @param	string		$object			Optional object to show string rep of
+	 * @param	string		$constant		If there is a constant that should be check to determine to log output
+	 */
+	public static function debug($desc, $object=NULL, $constant=NULL, $logfile=NULL)
+	{
+		if (null === self::$instance) {
+			throw new Exception("Log instance not configured");
+		}
+		$formatted_role = 'debug';
+		$temp		= next(debug_backtrace(false));
+		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
+		
+		self::buildStackTrace($temp, $message, false);
+		$message .= $desc;
+		if ($object) {
+			$message .= print_r($object, true);
+		}
+		$message .= PHP_EOL;
+		self::$instance->writeByRole($formatted_role, $message);
+	}
+	
+		/**
+	 * Send a message to the debug log or screen dependent on environment
+	 * @param	string		$message		Message to send
+	 * @param	string		$object			Optional object to show string rep of
+	 * @param	string		$constant		If there is a constant that should be check to determine to log output
+	 */
+	public static function error($desc, $object=NULL, $full_stack=false)
+	{
+		if (null === self::$instance) {
+			throw new Exception("Log instance not configured");
+		}
+		$formatted_role = 'error';
+		$temp		= next(debug_backtrace(false));
+		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
+		
+		self::buildStackTrace($temp, $message, false);
+		$message .= $desc;
+		if ($object) {
+			$message .= print_r($object, true);
+		}
+		if ($full_stack) {
+			$message .= PHP_EOL . print_r(array_splice($temp, 1), true);
+		}
+		$message .= PHP_EOL;
+		self::$instance->writeByRole($formatted_role, $message);
 	}
 
-	public function writeError($message) {
-		if ($this->_error_log) {
-			error_log($message.PHP_EOL, 3, $this->_error_log);
+	/**
+	 * Logs to special file the url requested where an error occured.
+	 * @param  $desc
+	 */
+	public static function requestError($desc = '') {
+		$back_trace = debug_backtrace(false);
+		$temp		= next($back_trace);
+		$time = time() - (60*60*8);
+		$message	= '['.date('Y-m-d H:i:s', $time).' PST][' . $_SERVER['REQUEST_URI'] .'] ' . $desc;
+		if (defined('REQUEST_ERROR_LOG')) {
+			error_log($message.PHP_EOL, 3, constant('REQUEST_ERROR_LOG'));
 		} else {
 			error_log($message);
 		}
-	}
-
-	public function writeDebug($message) {
-		if ($this->_debug_log) {
-			error_log($message.PHP_EOL, 3, $this->_debug_log);
-		}
-	}
-
-	public function error($message, $object=null, $constant=null) {
-		if ($constant && defined($constant) && !constant($constant)) {
-			return;
-		}
-
-		$trace = debug_backtrace(false);
-		$temp = next($trace);
-		self::buildStackTrace($temp, $message);
-
-		if (null !== $object) {
-			$message .= PHP_EOL . print_r($object, true);
-		}
-		$this->writeError($message);
-	}
-
-	public function debug($message, $object=null, $constant=null) {
-		if ($constant && defined($constant) && !constant($constant)) {
-			return;
-		}
-
-		$trace = debug_backtrace(false);
-		$temp = next($trace);
-		self::buildStackTrace($temp, $message);
-
-		if (null !== $object) {
-			$message .= PHP_EOL . print_r($object, true);
-		}
-		$this->writeDebug($message);
 	}
 
 	/**
@@ -84,31 +123,134 @@ class LilypadMVC_Log implements LilypadMVC_iLog
 	 */
 	public static function buildStackTrace(&$stack, &$message, $line_number=true) {
 
-		$temp = '';
 		if (isset($stack['class']) && isset($stack['function'])) {
-			$temp = $stack['class'] . $stack['type'] . $stack['function'];
+			$message .= $stack['class'] . $stack['type'] . $stack['function'];
 		} else if (isset($stack['function'])) {
-			$temp .= $stack['function'];
+			$message .= $stack['function'];
 		} else if (isset($stack['file'])) {
-			$temp .= $stack['file'];
+			$message .= $stack['file'];
 		}
 
-		$message = $temp.':: ' . $message;
+		// Not workign as expected. Will debug later...
+		//if (isset($stack['line']) && $line_number) {
+		//	$message .= '[' . $stack['line'] . ']';
+		//}
+
+		$message .= ':: ';
 	}
 
-	public function handler($errno, $errstr, $errfile=NULL, $errline=NULL, $context=NULL)
+	/**
+	 * handler function.
+	 * Conforms to php's error_handler definition. Used for routing all traffic to it
+	 * @access public
+	 * @static
+	 * @param mixed $errno
+	 * @param mixed $errstr
+	 * @param mixed $errfile. (default: NULL)
+	 * @param mixed $errline. (default: NULL)
+	 * @param mixed $context. (default: NULL)
+	 * @return void
+	 */
+	public static function handler($errno, $errstr, $errfile=NULL, $errline=NULL, $context=NULL)
 	{
-		$cooked = '[ERROR]';
-		if ($errfile) {
-			$cooked .= $errfile . '::' . $errline . " ";
+		if (null === self::$instance) {
+			throw new Exception("Log instance not configured");
 		}
-		$cooked .= $errstr;
-
-		$trace = debug_backtrace(false);
-		$temp = next($trace);
-		self::buildStackTrace($temp, $cooked);
-
-		$this->error($cooked);
+		$formatted_role = 'error';
+		$temp		= next(debug_backtrace(false));
+		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
+		if ($errfile) {
+			$message	.=  "[{$errfile}::{$errline}] ";
+		}
+		$message .= $errstr;
+		if ($context) {
+			//$message .= PHP_EOL . print_r($context, true);
+		}
+		$message .= PHP_EOL;
+		self::$instance->writeByRole($formatted_role, $message);
 	}
 
+	/**
+	 * registerErrorHandler
+	 *
+	 * @throws Exception
+	 */
+	public function registerErrorHandler()
+	{
+		set_error_handler("Lily_Log::handler", E_ALL);
+	}
+
+	/**
+	 * registerDebugHandler
+	 *
+	 */
+	public static function registerDebugHandler() {
+		$log = constant("DEBUG_LOG");
+		self::initFile($log);
+	}
+
+	public static function initFile($filename) {
+		if ($filename == 'STDOUT') return;
+		if (!file_exists($filename)) {
+			$file = @fopen($filename, 'c') or error_log("Could not open log file {$filename} for write.");
+			if ($file) fclose($file);
+		}
+	}
+
+	public static function getDebugBacktrace($NL = "\n") {
+		ob_start();
+        debug_print_backtrace();
+    	$trace = ob_get_contents();
+    	ob_end_clean();
+		return $trace;
+	}
+
+	/**
+	 * Only works in php 5.3
+	 */
+	public static function __callStatic($method, $arguments) {
+		if (null === self::$instance) {
+			throw new Exception("Log instance not configured");
+		}
+		$formatted_role = Utility::fromCamelCase($method);
+		$temp		= next(debug_backtrace(false));
+		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
+		
+		$message = isset($arguments[0]) ? $arguments[0] : '';
+		$message = self::buildStackTrace($temp, $message, false);
+		if (isset($arguments[1])) {
+			$message .= print_r($arguments[1], true);
+		}
+		$message .= PHP_EOL;
+		$instance->writeByRole($method, $message);
+	}
+	
+	public function __call($method, $arguments) {
+		$formatted_role = Utility::fromCamelCase($method);
+		$temp		= next(debug_backtrace(false));
+		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
+		
+		$message = isset($arguments[0]) ? $arguments[0] : '';
+		$message = self::buildStackTrace($temp, $message, false);
+		if (isset($arguments[1])) {
+			$message .= print_r($arguments[1], true);
+		}
+		$message .= PHP_EOL;
+		$this->writeByRole($method, $message);
+	}
+	
+	public function writeByRole($role, $message) {
+		if (!isset($this->roles[$role])) {
+			throw new Exception("Log role '$role' not defined.");
+		}
+		$props = $this->roles[$role];
+		if (!isset($props['location'])) {
+			throw new Exception("Log role '$formatted_role' location not defined.");
+		}
+		$file = $props['location'];
+		$enabled = isset($props['enabled']) ? $props['enabled'] : false;
+		if ((bool)$enabled == true) {
+			error_log($message, 3, $file);
+		}
+	}
 }

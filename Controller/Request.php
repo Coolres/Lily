@@ -5,10 +5,10 @@
  * the project root's LICENSE file. 
  */
 /**
- * LilypadMVC_Controller_Request class.
+ * Lily_Controller_Request class.
  * @author Matt Ward
  */
-class LilypadMVC_Controller_Request
+class Lily_Controller_Request
 {
 
     private $_module;

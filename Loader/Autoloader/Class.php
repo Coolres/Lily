@@ -8,12 +8,12 @@ require_once(dirname(__FILE__) . '/Interface.php');
  *  Lilypad
  *   SomeClass.php
  * 
- * class LilypadMVC_SomeClass
+ * class Lily_SomeClass
  * 
  * @author Matt Ward
  */
-class LilypadMVC_Loader_Autoloader_Class 
-    implements LilypadMVC_Loader_Autoloader_Interface
+class Lily_Loader_Autoloader_Class 
+    implements Lily_Loader_Autoloader_Interface
 {
     private $_namespace;
     private $_basepath;
