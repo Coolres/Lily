@@ -6,8 +6,14 @@ class Lily_Xmlrpc_Adapter_Http extends Lily_Xmlrpc_Adapter_Abstract
 	protected $connect_timeout = 5;
 	protected $host = ''; //Base url
 	protected $key = null;
+	protected $port = 80;
+	protected $profile = false;
 	
 	public function __construct(array $options) {
+		$this->setOptions($options);
+	}
+	
+	public function setOptions(array $options) {
 		if (isset($options['timeout'])) {
 			$this->timeout = $options['timeout'];
 		}
@@ -20,40 +26,45 @@ class Lily_Xmlrpc_Adapter_Http extends Lily_Xmlrpc_Adapter_Abstract
 			$this->host = $options['host'];
 		}
 		
-		if (isset($options['key'])) {
-			$this->key = $options['key'];
+		if (isset($options['port'])) {
+			$this->port = $options['port'];
+		}
+		
+		if (isset($options['pass'])) {
+			$this->key = $options['pass'];
+		}
+		
+		if (isset($options['profile'])) {
+			$this->profile = $options['profile'];
 		}
 	}
 	
 
-	public function sendRequest(Rpc_Request& $request) {
+	public function sendRequest(Lily_Rpc_Request& $request) {
 		$resource = $request->getResource();
-		$meta = $resource->getMeta($request->getMethod());
-		if (!isset($meta['role'])) {
-			
-		}
-		$role_info = $this->getRole($meta['role']);
-		
-
+		$method = $request->getMethod();
+        $params = $request->getParams();
         $method = str_replace('_', '.', $method);
-        if ($handle['key']) {
-          array_unshift($params, $handle['key']);
+        $url = $this->host . $request->getPath();
+        if ($this->key) {
+          array_unshift($params, $this->key);
         }
 
         $request = xmlrpc_encode_request($method, $params);
         $ch = curl_init();
 		
 		$opts = array(
-			CURLOPT_URL				=> $server,
-			CURLOPT_POSTFIELDS		=> $request->toJson(),
+			CURLOPT_URL				=> $url,
+			//CURLOPT_PORT			=> $this->port, 
+			CURLOPT_POSTFIELDS		=> $request,
 			CURLOPT_HTTP_VERSION	=> CURL_HTTP_VERSION_1_0,
 			CURLOPT_RETURNTRANSFER	=> 1,
 			CURLOPT_ENCODING		=> 'deflate, gzip',
 			CURLOPT_HTTPHEADER		=> array(
-	        	'X-DB-BundleHash: '.md5(serialize($request)),
 	        	'Accept: */*',
 	        	'Accept-Charset: UTF-8',
 	        	'Accept-Encoding: deflate, gzip',
+	        	'X-DB-BundleHash: '.md5(serialize($method).serialize($params)),
 	        	'Content-Type: text/xml; charset=UTF-8',
 	        	'Connection: close'
         	),
@@ -61,24 +72,20 @@ class Lily_Xmlrpc_Adapter_Http extends Lily_Xmlrpc_Adapter_Abstract
         	CURLOPT_CONNECTTIMEOUT	=> $this->connect_timeout
         );
 		
-
-    	Log::write('xmlrpc', " url: {$handle['url']} " . PHP_EOL . "method: {$method}" . PHP_EOL . "args: ", $params);
-        
-        curl_setopt($ch, CURLOPT_URL, $handle['url']);
-        if (array_key_exists('port', $handle)) {
-          curl_setopt($ch, CURLOPT_PORT, $handle['port']);
-        }
+		if ($this->profile) {
+    		Lily_Log::write($this->profile, " url: {$url} " . PHP_EOL . "method: {$method}" . PHP_EOL . "args: ", $params);
+		}
 		
+		curl_setopt_array($ch, $opts);
         $return = curl_exec($ch);
-        $url_parsed = parse_url(curl_getinfo($ch, CURLINFO_EFFECTIVE_URL));
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        
-        if (constant('XMLRPC_PROFILE')) {
+		
+        if ($this->profile) {
             $info = curl_getinfo($ch);
             $log_entry = Array(
                 $_SERVER["HTTP_HOST"],
                 $_SERVER["REQUEST_URI"],
-                $url_parsed["path"],
+                $url,
                 curl_getinfo($ch, CURLINFO_HTTP_CODE),
                 curl_getinfo($ch, CURLINFO_TOTAL_TIME),
                 curl_getinfo($ch, CURLINFO_CONNECT_TIME),
@@ -87,7 +94,7 @@ class Lily_Xmlrpc_Adapter_Http extends Lily_Xmlrpc_Adapter_Abstract
                 curl_getinfo($ch, CURLINFO_SPEED_DOWNLOAD),
                 curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD),
             );
-            $this->profileLog(join(" ",$log_entry));
+			Lily_Log::write($this->profile, '', $log_entry);
         }
         curl_close($ch);
         
@@ -98,39 +105,36 @@ class Lily_Xmlrpc_Adapter_Http extends Lily_Xmlrpc_Adapter_Abstract
       			break;
       			
       		case 404:
-      			throw new XMLRPC_Exception_Fault(
+      			throw new Lily_Xmlrpc_Exception_Fault(
       				"Specified method could not be found." . PHP_EOL .
       				"url: {$handle['url']} " . PHP_EOL . "method: {$method}", 404);
       			break;
       	
       		default:
-      			throw new XMLRPC_Exception_Fault(
+      			throw new Lily_Xmlrpc_Exception_Fault(
       				"XMLRPC Server responded with a non sucessful http code." . PHP_EOL .
       				"url: {$handle['url']} " . PHP_EOL . "method: {$method}", $http_code);
       			break;
       		
         }
- 		$this->setRawOutput($return);
- 		$str = mb_convert_encoding($return, "UTF-8", "UTF-8" );
-        $r = xmlrpc_decode($str);
-        if (!is_array($r)) {
-        	//throw new XMLRPC_Exception_Fault("XMLRPC did not return valid response. Does function exist?", 0);
-        }
+		$response = new Lily_Rpc_Response();
+		$response->setResult(xmlrpc_decode($return));
+		return $response;
 
-        if (is_array($r) && xmlrpc_is_fault($r)) {
-            throw new XMLRPC_Exception_Fault($r['faultString'], $r['faultCode']);
-        } 
-		return $r;
+ 		// //$str = mb_convert_encoding($return, "UTF-8", "UTF-8" );
+        // $r = xmlrpc_decode($str);
+        // if (!is_array($r)) {
+        	// //throw new XMLRPC_Exception_Fault("XMLRPC did not return valid response. Does function exist?", 0);
+        // }
+// 
+        // if (is_array($r) && xmlrpc_is_fault($r)) {
+            // throw new Lily_Xmlrpc_Exception_Fault($r['faultString'], $r['faultCode']);
+        // } 
+		// return $r;
 	}
 	
-	public function readRequest() {
+	
+	public function sendResponse(Lily_Rpc_Response& $response) {
 		// TODO
 	}
-	
-	public function sendResponse(XMLRPC_Response& $response) {
-		// TODO
-	}
-	
-	public function readResponse();
-	
 }

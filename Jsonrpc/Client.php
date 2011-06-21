@@ -1,6 +1,7 @@
-<?php 
+<?php
 
-class Lily_Xmlrpc_Client
+
+class Lily_Jsonrpc_Client
 {
 	private $_resource;
 	
@@ -9,7 +10,7 @@ class Lily_Xmlrpc_Client
 	}
 	
 	public function __call($method, $args) {
-		Lily_Xmlrpc_Manager::$request_id++;
+		Lily_Jsonrpc_Manager::$request_id++;
 		$request = new Lily_Rpc_Request();
 		
 		$meta = $this->_resource->getMethodMeta($method);
@@ -17,14 +18,15 @@ class Lily_Xmlrpc_Client
 			->setMethod($meta['method'])
 			->setParams($args)
 			->setPath($meta['path'])
-			->setId(Lily_Xmlrpc_Manager::$request_id);
-		$adapter = Lily_Xmlrpc_Manager::getAdapter($meta['role']);
+			->setId(Lily_Jsonrpc_Manager::$request_id);
+		$adapter = Lily_Jsonrpc_Manager::getAdapter($meta['role']);
 		try {
 			$response = $adapter->sendRequest($request);
 		} catch (Exception $e) {
-			Lily_Log::error("Lily_Xmlrpc_Client exception detected, `{$e->getMessage()}`,  when sending request:", $request);
+			Lily_Log::error("Lily_Jsonrpc_Client exception detected, `{$e->getMessage()}`,  when sending request:", $request);
 			throw $e;
 		}
 		return $response->getResult();
 	}
+	
 }

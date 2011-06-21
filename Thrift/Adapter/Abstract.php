@@ -72,7 +72,6 @@ abstract class Lily_Thrift_Adapter_Abstract
 		}
 	}
 
-	
 	public function __call($name, $arguments) {
 		if (null === $this->client) {
 			$this->rotateConnection();

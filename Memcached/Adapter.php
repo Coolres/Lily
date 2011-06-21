@@ -6,7 +6,7 @@ class Lily_Memcached_Adapter
 	private $mc;
 	
 	
-	public function __construct($options=array()) {
+	public function __construct(array $options) {
 		if (!isset($options['host'])) {
 			throw new Lily_Config_Exception('memcached.$role.host');
 		}
@@ -101,7 +101,7 @@ class Lily_Memcached_Adapter
 		if (defined('MEMCACHE_MD5_KEYS') && constant('MEMCACHE_MD5_KEYS')) {
 			$key = md5($key);
 		}
-		if (is_object($key)) Log::error('', debug_backtrace(false));
+		if (is_object($key)) Lily_Log::error('', debug_backtrace(false));
 		$result = @$this->mc->set($key, $value, MEMCACHE_COMPRESSED, $TTL);
 		Lily_Log::write('memcached', $temp, $result);
 		return $result;

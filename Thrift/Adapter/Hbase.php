@@ -6,7 +6,7 @@ class Lily_Thrift_Adapter_Hbase extends Lily_Thrift_Adapter_Abstract
 	
 	public function __construct($options) {
 		parent::__construct($options);
-		
+		$this->name = 'hbase';
 	}
 	
 	public function __destruct(){
@@ -14,6 +14,7 @@ class Lily_Thrift_Adapter_Hbase extends Lily_Thrift_Adapter_Abstract
 	}
 	
 	protected function openConnection($host, $port) {
+		Lily_Log::write($this->name, "Opening connection to $host:$port");
 		$this->socket = new TSocket($host, $port);
 		$this->socket->setSendTimeout($this->timeout_send);
 		$this->socket->setRecvTimeout($this->timeout_receive);

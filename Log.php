@@ -20,7 +20,7 @@ class Lily_Log {
 			$this->roles = $options;
 			foreach ($options as $role => $props) {
 				if (!isset($props['location'])) {
-					throw new Exception("Log role '$role' location not defined.");
+					Lily_Log::write("warning", "log.$role.location not defined.");
 				} else {
 					self::initFile($props['location']);
 				}
@@ -99,17 +99,17 @@ class Lily_Log {
 	 * Logs to special file the url requested where an error occured.
 	 * @param  $desc
 	 */
-	public static function requestError($desc = '') {
-		$back_trace = debug_backtrace(false);
-		$temp		= next($back_trace);
-		$time = time() - (60*60*8);
-		$message	= '['.date('Y-m-d H:i:s', $time).' PST][' . $_SERVER['REQUEST_URI'] .'] ' . $desc;
-		if (defined('REQUEST_ERROR_LOG')) {
-			error_log($message.PHP_EOL, 3, constant('REQUEST_ERROR_LOG'));
-		} else {
-			error_log($message);
-		}
-	}
+	// public static function requestError($desc = '') {
+		// $back_trace = debug_backtrace(false);
+		// $temp		= next($back_trace);
+		// $time = time() - (60*60*8);
+		// $message	= '['.date('Y-m-d H:i:s', $time).' PST][' . $_SERVER['REQUEST_URI'] .'] ' . $desc;
+		// if (defined('REQUEST_ERROR_LOG')) {
+			// error_log($message.PHP_EOL, 3, constant('REQUEST_ERROR_LOG'));
+		// } else {
+			// error_log($message);
+		// }
+	// }
 
 	/**
 	 * buildStackTrace function.
@@ -241,11 +241,13 @@ class Lily_Log {
 	
 	public function writeByRole($role, $message) {
 		if (!isset($this->roles[$role])) {
-			throw new Exception("Log role '$role' not defined.");
+			Lily_Log::write("warning", "log.$role not defined.");
+			return;
 		}
 		$props = $this->roles[$role];
 		if (!isset($props['location'])) {
-			throw new Exception("Log role '$formatted_role' location not defined.");
+			Lily_Log::write("warning", "log.$role.location not defined.");
+			return;
 		}
 		$file = $props['location'];
 		$enabled = isset($props['enabled']) ? $props['enabled'] : false;

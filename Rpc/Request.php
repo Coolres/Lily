@@ -1,16 +1,12 @@
 <?php
 
-/**
- * JSONRPC_Request class.
- * http://json-rpc.org/wiki/specification
- * @author Matt Ward
- */
-class XMLRPC_Request {
+class Lily_Rpc_Request {
 
 	public $resource;
 	public $method;
 	public $params;
 	public $id;
+	public $path;
 	private $info;
 
 	/**
@@ -20,36 +16,7 @@ class XMLRPC_Request {
 	 * @param mixed $arg
 	 * @return void
 	 */
-	public function __construct($arg=NULL) {
-		if (null !== $arg) {
-			if (is_string($arg)) {
-				$arg = json_decode($arg);
-			}
-
-			if (!is_object($arg)) {
-				throw new JSONRPC_Exception("Could not decode request", $arg);
-			}
-
-			if (isset($arg->resource)) {
-				$this->resource = $arg->resource;
-			}
-
-			if (!isset($arg->id)) {
-				//throw new JSONRPC_Exception("Request if not specified");
-			}
-			$this->id = isset($arg->id) ? $arg->id : -1;
-
-			if (!isset($arg->method)) {
-				throw new JSONRPC_Exception("No method specified");
-			}
-			$this->method = $arg->method;
-
-			if (isset($arg->params)) {
-				$this->params = $arg->params;
-			}
-		}
-
-	}
+	public function __construct() {}
 
 	/**
 	 * setResource function.
@@ -147,6 +114,15 @@ class XMLRPC_Request {
 	public function getId() {
 		return $this->id;
 	}
+	
+	public function setPath($arg) {
+		$this->path = $arg;
+		return $this;
+	}
+	
+	public function getPath() {
+		return $this->path;
+	}
 
 	/**
 	 * toJson function.
@@ -160,6 +136,7 @@ class XMLRPC_Request {
 			'resource'	=> $this->resource,
 			'method'	=> $this->method,
 			'params'	=> $this->params,
+			'path'		=> $this->path,
 			'id'		=> $this->id
 		);
 		$clean = Utility::fixEncoding($array);

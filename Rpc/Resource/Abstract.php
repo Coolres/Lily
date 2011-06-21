@@ -3,32 +3,71 @@
 abstract class Lily_Rpc_Resource_Abstract
 {
 	protected $_meta;
-	protected $_name;
 	
-	public function __construct($meta_info, $name) {
-		$this->_meta_info = $meta_info;	
-		$this->_name = $name;
-			
+	/**
+	 * Expects an array of options like the following
+	 *
+	 * 		$options = array(
+	 * 		'name'=> 'yfrog_TopData',
+	 * 		'path'	=> 'something.php'
+	 * 		'default_role'=> 'slave',
+	 * 		'methods'=> array(
+	 * 			'top_dataapi_v1_save_data'	=> array(
+	 * 				'role'	=> 'master'
+	 * 			)
+	 * 		));
+	 */
+	public function __construct($config) {
+		$this->_meta = $config;
 	}
 	
 	public function getName() {
-		return $this->_name;
+		if (!isset($this->_meta)) {
+			throw new Lily_Config_Exception('xmlrpc.resource.$name.name');
+		}
+		return $this->_meta['name'];
 	}
 	
-	public function getMeta($procedure) {
-		if (isset($this->_meta_info[$procedure])) {
-			return $this->_meta_info[$procedure];
+	public function getPath() {
+		if (isset($this->_meta['path'])) {
+			return $this->_meta['path'];
 		}
-		throw new Exception("Meta info for $procedure not defined");
+		return '/';
+	}
+	
+	public function getDefaultRole() {
+		if (isset($this->_meta['default_role'])) {
+			return $this->_meta['default_role'];
+		}
 		return null;
 	}
 	
-	public function getMetaMethod($procedure) {
-		if ($temp = $this->getMeta($procedure)) {
-			if (isset($temp['method'])) {
-				return $temp['method'];
+	public function getMethodMeta($method) {
+		if (!isset($this->_meta['methods'])) {
+			throw new Lily_Config_Exception('xmlrpc.resource.$name.methods');
+		}
+		
+		$result = array();
+		if (isset($this->_meta['methods'][$method])) {
+			$result = $this->_meta['methods'][$method];
+		}
+		
+		if (!isset($result['role'])) {
+			$default = $this->getDefaultRole();
+			if (null === $default) {
+				throw new Lily_Config_Exception('xmlrpc.resource.$name.methods.' . $method . ' or xmlrpc.resource.$name.default_role');
 			}
+			$result['role'] = $default;
 		}
-		return null;
+
+		if (!isset($result['method'])) {
+			$result['method'] = $method;
+		}
+		
+		if (!isset($result['path'])) {
+			$result['path'] = $this->getPath();
+		}
+
+		return $result;
 	}
 }

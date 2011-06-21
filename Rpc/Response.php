@@ -5,7 +5,7 @@
  *
  * @author Matt Ward
  */
-class XMLRPC_Response
+class Lily_Rpc_Response
 {
 	public $result;
 	public $error;
@@ -21,28 +21,18 @@ class XMLRPC_Response
 	 */
 	public function __construct($arg = NULL) {
 		if (null !== $arg) {
-
-			if (is_string($arg)) {
-				$arg = json_decode($arg);
-			}
-
-			if (!is_object($arg)) {
-				throw new XMLRPC_Exception("Could not decode specified response: " . PHP_EOL . print_r($arg, true));
-			}
-
 			if (isset($arg->error) && $arg->error !== null) {
-				throw new XMLRPC_Exception("Request returned with an error, '{$arg->error}'");
+				$this->error = $arg->error;
 			}
 
 			if (!isset($arg->result)) {
-				throw new XMLRPC_Exception("Result not specified: ". PHP_EOL . print_r($arg, true));
+				$this->result = $arg->result;
 			}
-			$this->result = $arg->result;
+			
 
 			if (!isset($arg->id)) {
-				throw new XMLRPC_Exception("Response id not specified: ". PHP_EOL . print_r($arg, true));
+				$this->id = $arg->id;
 			}
-			$this->id = $arg->id;
 		}
 
 	}

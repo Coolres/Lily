@@ -34,7 +34,21 @@ class Lily_Application {
 		// or pick out the ones this system will care about
 		foreach ($ini->get() as $module => $payload) {
 			switch ($module) {
+				case 'constant' :
+					foreach ($payload as $key => $value) {
+						if (!defined($key)) define($key, $value);
+					}
+					break;
+					
+				case 'database' :
+					$manager = new Lily_Database_Manager($payload);
+					break;
+					
+				case 'jsonrpc' :
+					$manager = new Lily_Jsonrpc_Manager($payload);
+					break;
 				
+				case 'lily':
 				case 'lilypad':
 					$this->init($payload);
 					break;
@@ -42,36 +56,27 @@ class Lily_Application {
 				case 'log' :
 					$logger = new Lily_Log($payload);
 					Lily_Log::registerErrorHandler();
-					$this->_registry->set('log', $logger);
+					break;
+					
+				case 'memcached' :
+					$manager = new Lily_Memcached_Manager($payload);
+					break;
+
+				case 'recaptcha' :
+					$manager = new Lily_Recaptcha_Manager($payload);
 					break;
 					
 				case 'thrift' :
 					$manager = new Lily_Thrift_Manager($payload);
-					$this->_registry->set('Thrift_Manager', $manager);
 					break;
 					
+				case 'twitter' :
+					$manager = new Lily_Twitter_Manager($payload);
+					break;
+				
 				case 'xmlrpc' :
-					// TODO
+					$manager = new Lily_Xmlrpc_Manager($payload);
 					break;
-					
-				case 'jsonrpc' :
-					//TODO
-					break;
-				
-				case 'database' :
-					$manager = new Lily_Database_Manager($payload);
-					$this->_registry->set('Database_Manager', $manager);
-					break;
-				
-				case 'memcached' :
-					$manager = new Lily_Memcached_Manager($payload);
-					$this->_registry->set('Memcached_Manager', $manager);
-					break;
-				
-				case 'constant' :
-					foreach ($payload as $key => $value) {
-						if (!defined($key)) define($key, $value);
-					}
 					
 				default: break;
 			}

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Thrift_Hbase_ResultSet
+ * Lily_Thrift_Hbase_ResultSet
  * @author Matt Ward
  *
  */
@@ -12,9 +12,9 @@ class Lily_Thrift_Hbase_ResultSet
 	protected $_client;
 	protected $_current;
 	
-	public function __construct($scanner)
+	public function __construct(Lily_Thrift_Adapter_Abstract& $client, $scanner)
 	{
-		$this->_client = Lily_Thrift_Manager::get('hbase');
+		$this->_client = $client;
 		$this->_scanner = $scanner;
 		$this->next();
 	}
