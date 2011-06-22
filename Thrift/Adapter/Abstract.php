@@ -101,7 +101,7 @@ abstract class Lily_Thrift_Adapter_Abstract
 				if ($i+1 == $this->max_retry) throw $te;
 			} catch (Exception $e) {
 				$this->profile("Unknown Exception, rotating connection.", $e);
-				Log::error("$thrift.{$this->name} Connection caught unknown error.". $e->getTraceAsString(), $e->getMessage());
+				Lily_Log::error("$thrift.{$this->name} Connection caught unknown error.". $e->getTraceAsString(), $e->getMessage());
 				if ($i+1 == $this->max_retry) throw $te;
 				$this->rotateConnection();
 			}

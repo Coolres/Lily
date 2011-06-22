@@ -70,7 +70,6 @@ abstract class Lily_Database_Adapter_Abstract
 		$result = call_user_func_array(array($connection, $name), $arguments);
 		$end = microtime(true);
 		$diff = $end - $start;
-		//Log::debug("[$diff] " . $name, $arguments, 'PROFILE', constant('PROFILE_LOG''));
 		return $result;
 	}
 }
