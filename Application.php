@@ -44,6 +44,10 @@ class Lily_Application {
 					$manager = new Lily_Database_Manager($payload);
 					break;
 					
+				case 'facebook' :
+					$manager = new Lily_Facebook_Manager($payload);
+					break;
+					 
 				case 'jsonrpc' :
 					$manager = new Lily_Jsonrpc_Manager($payload);
 					break;
@@ -55,11 +59,16 @@ class Lily_Application {
 					
 				case 'log' :
 					$logger = new Lily_Log($payload);
-					Lily_Log::registerErrorHandler();
 					break;
 					
 				case 'memcached' :
 					$manager = new Lily_Memcached_Manager($payload);
+					break;
+					
+				case 'php' :
+					foreach ($payload as $key => $value) {
+						ini_set($key, $value);
+					}
 					break;
 
 				case 'recaptcha' :
@@ -87,6 +96,14 @@ class Lily_Application {
 		$this->_use_apc = isset($options['apc']) ? $options['apc'] : false;
 		if (isset($options['dispatcher'])) {
 			$this->_dispatcher = new Lily_Controller_Dispatcher($options['dispatcher']);
+		}
+
+
+		if (isset($options['lib'])) {
+			$other_autoloader = new Lily_Loader_Autoloader_Class(
+                array('basepath' => $options['lib'], 'namespace' => '')
+            );
+            self::$autoloader->addAutoloader($other_autoloader);
 		}
 	}
 
@@ -192,11 +209,6 @@ class Lily_Application {
                 array('basepath' => dirname(__FILE__), 'namespace' => 'Lily')
             );
             self::$autoloader->addAutoloader($class_autoloader);
-			
-			$other_autoloader = new Lily_Loader_Autoloader_Class(
-                array('basepath' => dirname(dirname(__FILE__)), 'namespace' => '')
-            );
-            self::$autoloader->addAutoloader($other_autoloader);
         }
         return self::$autoloader;
     }

@@ -45,10 +45,7 @@ class Lily_View_Abstract
         if (strpos($template, '.' . $this->file_extension) == 0) {
 			$template .= '.' . $this->file_extension;
 		}
-
-		$log = Lily_Application::getLogger();
-		$log->debug($template, null, 'Lily_DEBUG');
-
+		Lily_Log::debug($template);
 		ob_start();
 		require($template);
 		return ob_get_clean();

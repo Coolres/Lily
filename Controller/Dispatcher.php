@@ -191,9 +191,10 @@ class Lily_Controller_Dispatcher
 			throw new Lily_Config_Exception("lily.dispatcher.module.{$module}.view");
 		}
 		if (!isset($this->_modules[$module]['view']['class'])) {
-			throw new Lily_Config_Exception("lily.dispatcher.module.{$module}.view.class");
+			$class = 'Lily_View_Abstract';
+		} else {
+			$class = $this->_modules[$module]['view']['class'];
 		}
-		$class = $this->_modules[$module]['view']['class'];
 		$view = new $class($this->_modules[$module]['view']);
 		return $view;
 	}

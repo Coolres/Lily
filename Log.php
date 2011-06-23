@@ -16,6 +16,7 @@ class Lily_Log {
 			throw new Exception("Instance of Lily_Log already instantiated");
 		}
 		
+		set_error_handler("Lily_Log::handler", E_ALL);
 		if (is_array($options)) {
 			$this->roles = $options;
 			foreach ($options as $role => $props) {
@@ -34,8 +35,7 @@ class Lily_Log {
 			throw new Exception("Log instance not configured");
 		}
 		$temp		= next(debug_backtrace(false));
-		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
-		
+		$message = '';
 		self::buildStackTrace($temp, $message, false);
 		$message .= $desc;
 		if ($object) {
@@ -57,9 +57,9 @@ class Lily_Log {
 		}
 		$formatted_role = 'debug';
 		$temp		= next(debug_backtrace(false));
-		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
-		
+		$message	= '';
 		self::buildStackTrace($temp, $message, false);
+
 		$message .= $desc;
 		if ($object) {
 			$message .= print_r($object, true);
@@ -81,8 +81,7 @@ class Lily_Log {
 		}
 		$formatted_role = 'error';
 		$temp		= next(debug_backtrace(false));
-		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
-		
+		$message = '';
 		self::buildStackTrace($temp, $message, false);
 		$message .= $desc;
 		if ($object) {
@@ -94,22 +93,6 @@ class Lily_Log {
 		$message .= PHP_EOL;
 		self::$instance->writeByRole($formatted_role, $message);
 	}
-
-	/**
-	 * Logs to special file the url requested where an error occured.
-	 * @param  $desc
-	 */
-	// public static function requestError($desc = '') {
-		// $back_trace = debug_backtrace(false);
-		// $temp		= next($back_trace);
-		// $time = time() - (60*60*8);
-		// $message	= '['.date('Y-m-d H:i:s', $time).' PST][' . $_SERVER['REQUEST_URI'] .'] ' . $desc;
-		// if (defined('REQUEST_ERROR_LOG')) {
-			// error_log($message.PHP_EOL, 3, constant('REQUEST_ERROR_LOG'));
-		// } else {
-			// error_log($message);
-		// }
-	// }
 
 	/**
 	 * buildStackTrace function.
@@ -137,6 +120,7 @@ class Lily_Log {
 		//}
 
 		$message .= ':: ';
+		return;
 	}
 
 	/**
@@ -157,8 +141,7 @@ class Lily_Log {
 			throw new Exception("Log instance not configured");
 		}
 		$formatted_role = 'error';
-		$temp		= next(debug_backtrace(false));
-		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
+		$message = '';
 		if ($errfile) {
 			$message	.=  "[{$errfile}::{$errline}] ";
 		}
@@ -170,30 +153,13 @@ class Lily_Log {
 		self::$instance->writeByRole($formatted_role, $message);
 	}
 
-	/**
-	 * registerErrorHandler
-	 *
-	 * @throws Exception
-	 */
-	public function registerErrorHandler()
-	{
-		set_error_handler("Lily_Log::handler", E_ALL);
-	}
-
-	/**
-	 * registerDebugHandler
-	 *
-	 */
-	public static function registerDebugHandler() {
-		$log = constant("DEBUG_LOG");
-		self::initFile($log);
-	}
-
 	public static function initFile($filename) {
 		if ($filename == 'STDOUT') return;
-		if (!file_exists($filename)) {
-			$file = @fopen($filename, 'c') or error_log("Could not open log file {$filename} for write.");
-			if ($file) fclose($file);
+		$file = fopen($filename, 'a');
+		if ($file === false) {
+			throw new Exception("Could not open log file {$filename} for write.");
+		} else {
+			fclose($file);
 		}
 	}
 
@@ -214,10 +180,8 @@ class Lily_Log {
 		}
 		$formatted_role = Utility::fromCamelCase($method);
 		$temp		= next(debug_backtrace(false));
-		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
-		
 		$message = isset($arguments[0]) ? $arguments[0] : '';
-		$message = self::buildStackTrace($temp, $message, false);
+		self::buildStackTrace($temp, $message, false);
 		if (isset($arguments[1])) {
 			$message .= print_r($arguments[1], true);
 		}
@@ -228,10 +192,8 @@ class Lily_Log {
 	public function __call($method, $arguments) {
 		$formatted_role = Utility::fromCamelCase($method);
 		$temp		= next(debug_backtrace(false));
-		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($formatted_role) .']';
-		
 		$message = isset($arguments[0]) ? $arguments[0] : '';
-		$message = self::buildStackTrace($temp, $message, false);
+		self::buildStackTrace($temp, $message, false);
 		if (isset($arguments[1])) {
 			$message .= print_r($arguments[1], true);
 		}
@@ -241,14 +203,21 @@ class Lily_Log {
 	
 	public function writeByRole($role, $message) {
 		if (!isset($this->roles[$role])) {
-			Lily_Log::write("warning", "log.$role not defined.");
+			if (isset($this->roles['warning']) 
+				&& isset($this->roles['warning']['location'])) {
+				Lily_Log::write("warning", "log.$role not defined.");
+			}
 			return;
 		}
 		$props = $this->roles[$role];
 		if (!isset($props['location'])) {
-			Lily_Log::write("warning", "log.$role.location not defined.");
+			if (isset($this->roles['warning']) 
+				&& isset($this->roles['warning']['location'])) {
+				Lily_Log::write("warning", "log.$role.location not defined.");
+			}
 			return;
 		}
+		$message	= '['.date('Y-m-d H:i:s e', time()).'][' . strtoupper($role) .']' . $message;
 		$file = $props['location'];
 		$enabled = isset($props['enabled']) ? $props['enabled'] : false;
 		if ((bool)$enabled == true) {
