@@ -54,7 +54,7 @@ class Lily_Database_Adapter_MySQL
 		$result = mysql_query($query, $conn);
 		$end = microtime(true);
 		$diff = $end - $start;
-		Lily_Log::debug("[{$diff}] " . $query, null, 'PROFILE', constant('PROFILE_LOG'));
+		Lily_Log::write("database", "[{$diff}] " . $query);
 
 		if ( $result === false ) {
 			throw new Lily_Database_Exception(
@@ -80,7 +80,7 @@ class Lily_Database_Adapter_MySQL
 		$result = mysql_query($query, $conn);
 		$end = microtime(true);
 		$diff = $end - $start;
-		Lily_Log::debug("[{$diff}] " . $query, null, 'PROFILE', constant('PROFILE_LOG'));
+		Lily_Log::write("database", "[{$diff}] " . $query);
 
 		if ($result === false) {
 			throw new Lily_Database_Exception(
@@ -98,7 +98,7 @@ class Lily_Database_Adapter_MySQL
 		$result = mysql_query($query, $conn);
 		$end = microtime(true);
 		$diff = $end - $start;
-		Lily_Log::debug("[{$diff}] " . $query, null, 'PROFILE', constant('PROFILE_LOG'));
+		Lily_Log::write("database","[{$diff}] " . $query);
 
 		if ($result === false) {
 			throw new Lily_Database_Exception(
@@ -152,50 +152,55 @@ class Lily_Database_Adapter_MySQL
 		return mysql_errno($conn);
 	}
 
-	public function buildInsertQuery($table, $rows)
+	public function buildInsertQuery($table, $schema, $rows)
 	{
 		if (empty($table)) throw new Lily_Database_Exception("table is empty");
+		if (empty($schema)) throw new Lily_Database_Exception("schems is empty");
 		if (empty($rows)) throw new Lily_Database_Exception("data is empty");
 		$conn = $this->getConnection();
 		
-		$columns = null;
-		$sprintf = null;
-		$data = array();
+		$first_row = reset($rows);
+		ksort($first_row);
+		$temp = array();
+		$columns = array();
+		foreach ($first_row as $column => $value) {
+			if (isset($schema[$column])) {
+				throw new Lily_Database_Exception("unknown column `$column` provided");
+			}
+			switch ($schema[$column]) {
+				case 'int':
+					$temp[] = '%d';
+					break;
+				default:
+					$temp[] = '"%s"';
+					break;
+			}
+			$columns[] = $column;
+		}
+		
+		$format = '(' . implode(',', $temp) .')';
+		
+		$values = array();
 		foreach ($rows as $row) {
 			ksort($row);
-			if ($columns === null) {
-				$columns = implode(',', array_keys($row));
-			}
-			if ($sprintf === null) {
-				$sprintf = array();
-				foreach ($row as $column => $value) {
-					if (is_int($value)) {
-						$sprintf[] = '%d';
-					} else {
-						$sprintf[] = '%s';
-					}
-				}
-				$sprintf = '(' . implode(',', $sprintf) .')';
-			}
-
-			// Build escaped input
 			$temp = array();
-			$sprintf = array();
 			foreach ($row as $column => $value) {
-				if (is_int($value)) {
-					$temp[] = $this->escapeInt($value);
-					$sprintf[] = '%d';
-				} else {
-					$temp[] = $this->escapeString($value);
-					$sprintf[] = "'%s'";
+				if (isset($schema[$column])) {
+					throw new Lily_Database_Exception("unknown column `$column` provided");
+				}
+				switch ($schema[$column]) {
+					case 'int':
+						$temp[] = $this->escapeInt($value);
+						break;
+					default:
+						$temp[] = $this->escapeString($value);
+						break;
 				}
 			}
-			$sprintf = '(' . implode(',', $sprintf) .')';
-			array_unshift($temp, $sprintf);
-			$data[] = call_user_func_array('sprintf', $temp);
+			$values[] = call_user_func('sprintf', array_unshift($temp, $format));
 		}
 
-		$query = "INSERT IGNORE INTO {$table} ($columns) VALUES " . implode(',', $data);
+		$query = "INSERT IGNORE INTO {$table} (" . implode(',', $columns) . ") VALUES " . implode(',', $values);
 		return $query;
 	}
 }

@@ -52,7 +52,7 @@ abstract class Lily_Database_Adapter_Abstract
 	abstract public function insert($query);
 
 	abstract public function selectDatabase($database);
-
+	
 	abstract public function escapeString($string);
 
 	abstract public function escapeInt($string);
