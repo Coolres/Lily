@@ -15,7 +15,7 @@ class Lily_Log {
 		if (self::$instance !== null) {
 			throw new Exception("Instance of Lily_Log already instantiated");
 		}
-		
+		self::$instance = $this;
 		set_error_handler("Lily_Log::handler", E_ALL);
 		if (is_array($options)) {
 			$this->roles = $options;
@@ -27,7 +27,7 @@ class Lily_Log {
 				}
 			}
 		}
-		self::$instance = $this;
+		
 	}
 	
 	public static function write($formatted_role, $desc, $object=null) {
@@ -157,7 +157,7 @@ class Lily_Log {
 		if ($filename == 'STDOUT') return;
 		$file = fopen($filename, 'a');
 		if ($file === false) {
-			throw new Exception("Could not open log file {$filename} for write.");
+			//throw new Exception("Could not open log file {$filename} for write.");
 		} else {
 			fclose($file);
 		}
