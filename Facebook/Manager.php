@@ -56,7 +56,7 @@ class Lily_Facebook_Manager
 	}
 	
 	public static function getSecret() {
-		return self::$instance->appid;
+		return self::$instance->secret;
 	}
 	
 }

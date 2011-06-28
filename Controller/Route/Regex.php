@@ -56,7 +56,6 @@ class Lily_Controller_Route_Regex extends Lily_Controller_Route_Abstract
         return false;
     }
     
-    
     public function getRequest($uri, $query_string)
     {
     	$request = new Lily_Controller_Request();

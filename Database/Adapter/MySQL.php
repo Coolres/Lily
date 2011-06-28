@@ -107,7 +107,7 @@ class Lily_Database_Adapter_MySQL
 				);
 		}
 
-		return mysql_insert_id($connection);
+		return mysql_insert_id($conn);
 	}
 
 	/* (non-PHPdoc)
@@ -155,18 +155,17 @@ class Lily_Database_Adapter_MySQL
 	public function buildInsertQuery($table, $schema, $rows)
 	{
 		if (empty($table)) throw new Lily_Database_Exception("table is empty");
-		if (empty($schema)) throw new Lily_Database_Exception("schems is empty");
+		if (empty($schema)) throw new Lily_Database_Exception("schemas is empty");
 		if (empty($rows)) throw new Lily_Database_Exception("data is empty");
 		$conn = $this->getConnection();
-		
 		$first_row = reset($rows);
 		ksort($first_row);
 		$temp = array();
 		$columns = array();
 		foreach ($first_row as $column => $value) {
-			if (isset($schema[$column])) {
-				throw new Lily_Database_Exception("unknown column `$column` provided");
-			}
+			// if (!isset($schema[$column])) {
+				// throw new Lily_Database_Exception("unknown column `$column` provided");
+			// }
 			switch ($schema[$column]) {
 				case 'int':
 					$temp[] = '%d';
@@ -183,11 +182,12 @@ class Lily_Database_Adapter_MySQL
 		$values = array();
 		foreach ($rows as $row) {
 			ksort($row);
-			$temp = array();
+			$temp = array($format);
 			foreach ($row as $column => $value) {
-				if (isset($schema[$column])) {
-					throw new Lily_Database_Exception("unknown column `$column` provided");
-				}
+				
+				// if (isset($schema[$column])) {
+					// throw new Lily_Database_Exception("unknown column `$column` provided");
+				// }
 				switch ($schema[$column]) {
 					case 'int':
 						$temp[] = $this->escapeInt($value);
@@ -197,7 +197,8 @@ class Lily_Database_Adapter_MySQL
 						break;
 				}
 			}
-			$values[] = call_user_func('sprintf', array_unshift($temp, $format));
+			$result = call_user_func_array('sprintf', $temp);
+			$values[] = $result;
 		}
 
 		$query = "INSERT IGNORE INTO {$table} (" . implode(',', $columns) . ") VALUES " . implode(',', $values);

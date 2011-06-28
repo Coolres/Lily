@@ -61,23 +61,20 @@ class Lily_Controller_Action
     	$this->_response->setLayout($layout_name);	
     }
     
-    protected function forward($module, $controller, $action)
-    {
+    protected function forward($module, $controller, $action) {
         $this->_request->setDispatched(false)
             ->setModule($module)
             ->setController($controller)
             ->setAction($action);
     }
     
-    protected function redirect($uri)
-    {
+    protected function redirect($uri) {
         $this->_request->setDispatched(true);
         $this->_response->setNoRender();
         $this->_response->addHeader('Location: '.$uri);    
     }
     
-    protected function setNoRender()
-    {
+    protected function setNoRender() {
     	$this->_response->setNoRender();
     }
 
