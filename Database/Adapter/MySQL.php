@@ -18,6 +18,9 @@ class Lily_Database_Adapter_MySQL
 		}
 
 		mysql_set_charset("utf8", $this->connection);
+		if ($this->database) {
+			$this->selectDatabase($this->database);
+		}
 		return $this->connection;
 	}
 	
@@ -56,20 +59,17 @@ class Lily_Database_Adapter_MySQL
 		$diff = $end - $start;
 		Lily_Log::write("database", "[{$diff}] " . $query);
 
-		if ( $result === false ) {
-			throw new Lily_Database_Exception(
-				$this->getErrorMessage($conn),
-				$this->getErrorCode($conn)
-			);
-		}
-		if ( $result === true ) return $result;
-
 		if ( $result ) {
 			$results = array();
 			while ($row = mysql_fetch_assoc($result)) {
 				$results[] = $row;
 			}
 			return $results;
+		} else {
+			throw new Lily_Database_Exception(
+				$this->getErrorMessage($conn),
+				$this->getErrorCode($conn)
+			);
 		}
 		return $results;
 	}

@@ -17,6 +17,9 @@ class Lily_Database_Adapter_MySQLi
 		}
 		
 		mysqli_set_charset($this->connection, "utf8");
+		if ($this->database) {
+			$this->selectDatabase($this->database);
+		}
 		return $this->connection;
 	}
 
