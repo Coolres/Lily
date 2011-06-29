@@ -6,7 +6,7 @@
  * @author Matt Ward
  * @abstract
  */
-abstract class Lily_Model_Abstract
+abstract class Lily_Data_Model_Abstract
 {
 	protected $_id;
 

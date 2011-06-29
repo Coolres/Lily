@@ -114,5 +114,61 @@ abstract class Lily_Data_Mapper_Abstract
 
 	abstract public function get($id);
 
-	abstract protected function _buildId(Model_Abstract& $model);
+	abstract protected function _buildId(Lily_Data_Model_Abstract& $model);
+	
+	/**
+	 * For each property passed, if theere is a camel cased setter for it,
+	 * will call set.
+	 */
+	public function populate($data, &$model=null) {
+		if (null === $model) {
+			$model = new $this->model();
+		}
+
+		// Loop through each property of data and see if
+		// it can be applied to the model
+		foreach ($data as $key => $value) {
+			$method_name = Lily_Utility::toCamelCase('set_' . $key);
+			if (method_exists($model, $method_name)) {
+				$model->$method_name($value);
+			}
+		}
+		return $model;
+	}
+
+	/**
+	 * 
+	 * Map should be in following format:
+	 * array(
+	 * 	model	=> array(
+	 * 		'property_name' => 1
+	 * 	)
+	 * 	mapper	=> array(
+	 * 		'property_name' => 1
+	 * )
+	 * 
+	 * 
+	 */
+	public function mapPopulate(array& $map, array& $data, &$model ){
+		if (!is_array($data) || null === $data) return;
+
+		foreach ($data as $key => $value) {
+			if (empty($value)) continue;
+			if (!is_array($value) && !is_object($value)) {
+				$value = Lily_Utility::fixEncoding($value);
+			}
+			if (isset($map['model'][$key])) {
+				$function = Lily_Utility::toCamelCase('set_' . $key);
+				if (method_exists($model, $function)) {
+					$model->$function($value);
+				}
+			} elseif (isset($map['mapper'][$key])) {
+				$function = Lily_Utility::toCamelCase('set_' . $key);
+				if (method_exists($this, $function)) {
+					$this->$function($model, $value);
+				}
+			}
+		}
+	}
+	
 }
