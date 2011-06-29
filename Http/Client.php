@@ -100,7 +100,6 @@ class Lily_Http_Client
 			break;
 		}
 		$opts[CURLOPT_URL] = $url;
-		Lily_Log::debug("url, $url");
 		curl_setopt_array($handle, $opts);
 		$result = curl_exec($handle);
 		$request->setResult($result);
