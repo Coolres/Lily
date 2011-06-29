@@ -117,6 +117,16 @@ class Lily_Jsonrpc_Adapter_Http extends Lily_Jsonrpc_Adapter_Abstract
 		if (!isset($object->result)) {
 			throw new Lily_Jsonrpc_Exception("Result not specified: $return");
 		}
+		
+		// Inspect the result
+		$result = $object->result;
+		$class_name  = isset($object->result_class) ? $object->result_class : null;
+		if ($class_name && class_exists($class_name)) {
+			$temp = new $class_name();
+			$temp->populate($result);
+			$result = $temp;
+		}
+		
 		$response->setResult($object->result);
 		return $response;
 	}

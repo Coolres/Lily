@@ -55,7 +55,8 @@ class Lily_Jsonrpc_Server
 			}
 	
 			$response->setResult($result)
-				->setId($request->getId());
+				->setId($request->getId())
+				->setResultClass(get_class($result));
 		} catch (Exception $e) {
 			Lily_Log::error($e->getMessage(), $e);
 			$response = new Lily_Rpc_Response();

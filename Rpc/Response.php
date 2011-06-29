@@ -10,6 +10,7 @@ class Lily_Rpc_Response
 	public $result;
 	public $error;
 	public $id;
+	public $result_class;
 
 
 	/**
@@ -102,6 +103,16 @@ class Lily_Rpc_Response
 	public function getId() {
 		return $this->id;
 	}
+	
+	public function getResultClass() {
+		return $this->result_class;
+	}
+	
+	public function setResultClass($class) {
+		$this->result_class = $class;
+		return $this;
+	}
+	
 
 	/**
 	 * toJson function.
