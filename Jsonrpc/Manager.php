@@ -77,7 +77,7 @@ class Lily_Jsonrpc_Manager
 			if (class_exists($resource_name)) {
 				self::$instance->resources[$resource_name] = new $resource_name();
 			} else {
-				if (null === self::$instance->resouce_config) {
+				if (null === self::$instance->resource_config) {
 					throw new Lily_Config_Exception("jsonrpc.resource or class by name of $resource_name");
 				}
 				if (!isset(self::$instance->resource_config[$resource_name])) {
