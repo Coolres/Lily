@@ -29,7 +29,7 @@ abstract class Lily_Data_Mapper_Abstract
 		if ( isset($args['cache_format']) )
 			$this->cache_format = $args['cache_format'];
 	}
-
+	
 	/**
 	 * Build cache id for cache enabled mappers
 	 * @param Model_Abstract $model
@@ -76,7 +76,7 @@ abstract class Lily_Data_Mapper_Abstract
 		return $model;
 	}
 
-	protected function cacheSet( Model_Abstract& $model, $columns=null, $time=null)
+	protected function cacheSet( Lily_Data_Model_Abstract& $model, $columns=null, $time=null)
 	{
 		if ( !$this->cache_enabled ) return false;
 		$row_id = $this->_buildId($model);
@@ -99,7 +99,7 @@ abstract class Lily_Data_Mapper_Abstract
 		return $mc->set($cache_id, $result, $ttl);
 	}
 
-	protected function cacheDelete(Model_Abstract& $model, $columns=null)
+	protected function cacheDelete(Lily_Data_Model_Abstract& $model, $columns=null)
 	{
 		if ( !$this->cache_enabled ) return false;
 		$mc = Lily_Memcached_Manager::get();
@@ -107,15 +107,11 @@ abstract class Lily_Data_Mapper_Abstract
 		return $mc->delete($cache_key);
 	}
 
-	public function invalidate(Model_Abstract& $model, $columns=null)
+	public function invalidate(Lily_Data_Model_Abstract& $model, $columns=null)
 	{
 		$this->cacheDelete($model, $columns);
 	}
 
-	abstract public function get($id);
-
-	abstract protected function _buildId(Lily_Data_Model_Abstract& $model);
-	
 	/**
 	 * For each property passed, if theere is a camel cased setter for it,
 	 * will call set.
@@ -171,4 +167,15 @@ abstract class Lily_Data_Mapper_Abstract
 		}
 	}
 	
+	/**
+	 * Function for retrieving a record by its primary index.
+	 * @return null | Lily_Data_Model_Abstract
+	 */
+	abstract public function get($id);
+
+	/**
+	 * Builds the primary id for the model 
+	 * @return string
+	 */
+	abstract protected function _buildId(Lily_Data_Model_Abstract& $model);
 }

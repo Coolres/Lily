@@ -84,6 +84,15 @@ abstract class Lily_Data_Model_Abstract
 		return true;
 	}
 
+	public function getId() {
+		return $this->_id;
+	}
+	
+	public function setId($arg) {
+		$this->_id = $arg;
+		return $this;
+	}
+
 	/**
 	 * populate function.
 	 *

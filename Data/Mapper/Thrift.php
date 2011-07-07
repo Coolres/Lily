@@ -1,15 +1,19 @@
 <?php
 
-abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
+abstract class Lily_Data_Mapper_Thrift 
+	extends Lily_Data_Mapper_Abstract
 {
 	protected $schema;
+	protected $client;
 
 
 	protected function __construct($args) {
 		if (isset($args['client'])) {
 			$this->client = $args['client'];
 		} else {
-			throw new Lily_Data_Mapper_Exception(__CLASS__ . " requires a thrift client to be specified initialization");
+			$e = new Lily_Data_Mapper_Exception(__CLASS__ . " requires a thrift client to be specified initialization");
+			Lily_Log::error($e->getMessage(), $e->getTrace());
+			throw $e;
 		}
 
 		if (isset($args['schema'])) {
@@ -151,7 +155,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 * @param Model_Abstract $model
 	 * @return Ambigous <NULL, Ambiguous, Model, unknown>
 	 */
-	public function getByModel(Model_Abstract $model, $columns = null)
+	public function getByModel(Lily_Data_Model_Abstract& $model, $columns = null)
 	{
 		$result = null;
 		$row_id = $this->_buildRowId($model);
@@ -217,7 +221,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 *
 	 * @param Model_Thrift $model
 	 */
-	public function delete(Model_Abstract& $model)
+	public function delete(Lily_Data_Model_Abstract& $model)
 	{
 		$row_id = $this->_buildRowId($model);
 		$this->client->deleteAllRow($this->table, $row_id);
@@ -233,7 +237,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 * @param unknown_type $amount
 	 * @return NULL
 	 */
-	public function increment(Model_Abstract& $model, $column, $amount=1)
+	public function increment(Lily_Data_Model_Abstract& $model, $column, $amount=1)
 	{
 		return $this->client->atomicIncrement(
 			$this->table, $this->_buildRowId($model), $column, $amount
@@ -248,7 +252,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 * @param unknown_type $amount
 	 * @return NULL
 	 */
-	public function decrement(Model_Abstract& $model, $column, $amount=1)
+	public function decrement(Lily_Data_Model_Abstract& $model, $column, $amount=1)
 	{
 		if ($amount > 0) $amount = $amount * -1;
 		return $this->client->atomicIncrement(
@@ -263,7 +267,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 * @param unknown_type $column
 	 * @return Ambigous <number, number>|NULL
 	 */
-	public function getCounter(Model_Abstract& $model, $column)
+	public function getCounter(Lily_Data_Model_Abstract& $model, $column)
 	{
 		$row = $this->_buildRowId($model);
 		$result = $this->client->get($this->table, $row, $column);
@@ -281,7 +285,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 * @param unknown_type $column
 	 * @param unknown_type $value
 	 */
-	public function setCounter(Model_Abstract& $model, $column, $value)
+	public function setCounter(Lily_Data_Model_Abstract& $model, $column, $value)
 	{
 		$row = $this->_buildRowId($model);
 		$mutation = new Mutation(array(
@@ -347,7 +351,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 * @throws Exception
 	 * @return Ambigous <multitype:, Mutation>
 	 */
-	protected function _buildRowMutations(Model_Abstract& $model, array& $mutations=null) {
+	protected function _buildRowMutations(Lily_Data_Model_Abstract& $model, array& $mutations=null) {
 		if (!$model instanceof $this->model) {
 			throw new Exception('Specified model is not instance of ' . $this->model);
 		}
@@ -489,7 +493,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 * @param schema_props $props
 	 * @return NULL|Ambigous <NULL, Mutation>
 	 */
-	private function _buildMutation(Model_Abstract& $model, $family, $column, $props)
+	private function _buildMutation(Lily_Data_Model_Abstract& $model, $family, $column, $props)
 	{
 		if (isset($props['mutate_ignore']) && $props['mutate_ignore']) {
 			return null;
@@ -575,7 +579,7 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	/* (non-PHPdoc)
 	 * @see Mapper_Abstract::_buildId()
 	 */
-	protected function _buildId(Model_Abstract& $model) {
+	protected function _buildId(Lily_Data_Model_Abstract& $model) {
 		return $this->_buildRowId($model);
 	}
 
@@ -585,14 +589,14 @@ abstract class Lily_Data_Mapper_Thrift extends Lily_Data_Mapper_Abstract
 	 * @param unknown_type $id
 	 * @param Model_Abstract $model
 	 */
-	abstract protected function _setRowId($id, Model_Abstract& $model);
+	abstract protected function _setRowId($id, Lily_Data_Model_Abstract& $model);
 
 	/**
 	 * getRowId
 	 *
 	 * @param unknown_type $model
 	 */
-	abstract protected function _buildRowId(Model_Abstract& $model);
+	abstract protected function _buildRowId(Lily_Data_Model_Abstract& $model);
 
 
 }
