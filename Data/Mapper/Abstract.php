@@ -154,12 +154,12 @@ abstract class Lily_Data_Mapper_Abstract
 				$value = Lily_Utility::fixEncoding($value);
 			}
 			if (isset($map['model'][$key])) {
-				$function = Lily_Utility::toCamelCase('set_' . $key);
+				$function = Lily_Utility::toCamelCase('set_' . $map['model'][$key]);
 				if (method_exists($model, $function)) {
 					$model->$function($value);
 				}
 			} elseif (isset($map['mapper'][$key])) {
-				$function = Lily_Utility::toCamelCase('set_' . $key);
+				$function = Lily_Utility::toCamelCase('set_' . $map['model'][$key]);
 				if (method_exists($this, $function)) {
 					$this->$function($model, $value);
 				}
