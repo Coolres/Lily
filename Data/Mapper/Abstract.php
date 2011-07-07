@@ -159,7 +159,7 @@ abstract class Lily_Data_Mapper_Abstract
 					$model->$function($value);
 				}
 			} elseif (isset($map['mapper'][$key])) {
-				$function = Lily_Utility::toCamelCase('set_' . $map['model'][$key]);
+				$function = Lily_Utility::toCamelCase('set_' . $map['mapper'][$key]);
 				if (method_exists($this, $function)) {
 					$this->$function($model, $value);
 				}
