@@ -87,6 +87,10 @@ class Lily_Application {
 				case 'xmlrpc' :
 					$manager = new Lily_Xmlrpc_Manager($payload);
 					break;
+				
+				case 'queue' :
+				    $manager = new Lily_Queue_Manager($payload);
+				    break;
 					
 				default: break;
 			}
