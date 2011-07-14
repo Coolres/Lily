@@ -241,13 +241,22 @@ class Lily_Controller_Request
 	}
 
 	public function getUserAgent() {
+		if ( !isset($_SERVER['HTTP_USER_AGENT']) ) {
+			return '';
+		}
 		return $_SERVER['HTTP_USER_AGENT'];
 	}
 	
 	public function isUserAgentMobileApple() {
+		
+		if ( !isset($_SERVER['HTTP_USER_AGENT']) ) {
+			return false;
+		}
+		
 		$devices = array(
 			'iPhone', 'iPod', 'iPad'
 		);
+		
 		foreach ($devices as $device) {
 			if (strpos($_SERVER['HTTP_USER_AGENT'], $device)) {
 				return true;
@@ -257,9 +266,15 @@ class Lily_Controller_Request
 	}
 
 	public function isUserAgentMobile() {
+		
+		if ( !isset($_SERVER['HTTP_USER_AGENT']) ) {
+			return false;
+		}
+		
 		$devices = array(
 			'iPhone', 'iPod', 'iPad', 'BlackBerry', 'Android'
 		);
+		
 		foreach ($devices as $device) {
 			if (strpos($_SERVER['HTTP_USER_AGENT'], $device)) {
 				return true;
