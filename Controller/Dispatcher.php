@@ -99,16 +99,12 @@ class Lily_Controller_Dispatcher
         				$response->addHeader('Content-Type: application/json; charset=utf-8');
 						break;
 
-					case 'jsonp':
-						$view	= new Lily_View_Abstract($partial_dir);
-        				$response->setView($view);
-        				$response->setTemplate('jsonp');
-        				$response->addHeader('Content-Type: text/html');
-						break;
+
 
 					case 'css':
 						$response->addHeader('Content-Type: text/css');
 
+					case 'jsonp':
 					default:
 						$view = $this->getView($request->getModuleName());
 
