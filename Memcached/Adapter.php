@@ -4,7 +4,7 @@
 class Lily_Memcached_Adapter
 {
 	private $mc;
-	
+	private $hosts;
 	
 	public function __construct(array $options) {
 		if (!isset($options['host'])) {
@@ -15,6 +15,11 @@ class Lily_Memcached_Adapter
 		$this->mc = new Memcache();
 		foreach ($hosts as $host) {
 			list($host, $port, $weight) = explode(':', $host);
+			$this->hosts[] = array(
+                'host' => $host,
+                'port' => $port,
+                'weight' => $weight
+			);
 			$this->mc->addServer(
 				$host,
 				$port,
@@ -26,7 +31,6 @@ class Lily_Memcached_Adapter
 				array($this, 'connection_failure')
 				);
 		}
-		
 	}
 	
 	private function balanceWeight($pool) {
@@ -68,6 +72,41 @@ class Lily_Memcached_Adapter
     {
         Lily_Log::error("[ MEMCACHE_FAIL ] {$host} {$port} " );
         return;
+    }
+    
+    /**
+     * Flush the pool baby.
+     * @return bool
+     */
+    public function flush() {
+        return $this->mc->flush();
+    }
+    
+    /**
+     * Hit the hosts to see if they're online.
+     * @return array
+     */
+    public function getStatus() {
+        $status = array();
+        $empty_str = '';
+        if (!empty($this->hosts)) {
+            foreach ($this->hosts as $k => $v) {
+                $temp = array(
+                    'host' => $v['host'],
+                    'port' => $v['port'],
+                    'weight' => $v['weight'],
+                    'status' => false
+                );
+                $result = @fsockopen($v['host'], $v['port'], $empty_str, $empty_str, 2);
+                if ($result) {
+                    fclose($result);
+                    $temp['status'] = true;
+                }
+                $status[] = $temp;
+                unset($temp);
+            }
+        }
+        return $status;
     }
 	
 	/**
