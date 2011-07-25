@@ -39,6 +39,9 @@ abstract class Lily_Data_Mapper_Abstract
 			throw new Mapper_Exception("mapper->table must be set in order to utilize cacheing");
 		}
 
+		if (is_object($id)) {
+			Lily_Log::debug("", debug_backtrace(false));
+		}
 		$temp = $this->table . '|' . $id;
 		if (!empty($columns)) {
 			asort($columns);
@@ -52,7 +55,7 @@ abstract class Lily_Data_Mapper_Abstract
 		if ( !$this->cache_enabled ) return false;
 		$model = null;
  		$row_id = null;
-		if ( $id instanceof Model_Abstract ) {
+		if ( $id instanceof Lily_Data_Model_Abstract ) {
 			$row_id = $this->_buildId($id);
  		} else {
  			$row_id = $id;
