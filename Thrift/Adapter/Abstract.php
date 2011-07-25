@@ -141,13 +141,20 @@ abstract class Lily_Thrift_Adapter_Abstract
 		$this->closeConnection();
 		
 		for ($i=0; $i<$this->max_retry; $i++) {
-			if (++$this->connection_id >= count($this->hosts)) {
-				$this->connection_id = 0;
+			if (null === $this->connection_id) {
+				// Randomize first connection! Dont want to rape the first host!
+				$this->connection_id = rand(0, count($this->hosts)-1);
+			} else {
+				if (++$this->connection_id >= count($this->hosts)) {
+					$this->connection_id = 0;
+				}
 			}
 			
 			try {
 				$host = $this->hosts[$this->connection_id];
+				Lily_Log::debug("hosts", $this->hosts);
 				$port = isset($host['port']) ? $host['port'] : $this->port;
+				Lily_Log::debug("Opening thrift connection to {$host['host']}");
 				$this->openConnection($host['host'], $port);
 				if ($this->client !== null) break;
 			} catch (TException $te) {
