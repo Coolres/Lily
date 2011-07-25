@@ -39,9 +39,6 @@ abstract class Lily_Data_Mapper_Abstract
 			throw new Mapper_Exception("mapper->table must be set in order to utilize cacheing");
 		}
 
-		if (is_object($id)) {
-			Lily_Log::debug("", debug_backtrace(false));
-		}
 		$temp = $this->table . '|' . $id;
 		if (!empty($columns)) {
 			asort($columns);
