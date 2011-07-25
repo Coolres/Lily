@@ -36,8 +36,8 @@ class Lily_Controller_Action
     	return $this->_response;
     }
     
-    protected function setCookie($cookie_name, $value, $ttl) {
-    	$this->_response->setCookie($cookie_name, $value, $ttl);
+    protected function setCookie($cookie_name, $value, $ttl, $dir='/', $domain=null) {
+    	$this->_response->setCookie($cookie_name, $value, $ttl, $dir, $domain);
     }
     
     protected function getParam($param, $default=null) {

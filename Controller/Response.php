@@ -37,11 +37,13 @@ class Lily_Controller_Response
         return $this;
     }
     
-    public function setCookie($cookie_name, $value, $ttl)
+    public function setCookie($cookie_name, $value, $ttl, $dir='/', $domain=null)
     {
    		$this->_cookie[$cookie_name] = array(
    			'value'	=>$value,
-   			'ttl'	=> $ttl
+   			'ttl'	=> $ttl,
+   			'dir'	=> $dir,
+   			'domain'=> is_null($domain) ? $_SERVER['HTTP_HOST'] : $domain 
    		);
    		return $this;
     }
@@ -114,10 +116,14 @@ class Lily_Controller_Response
 	     		header($header);
 	     	}
      	}
-        
         if (!empty($this->_cookie)) {
 	     	foreach ($this->_cookie as $name => $payload) {
-	     		setcookie($name, $payload['value'], $payload['ttl'], '/');	
+	     		setcookie($name, 
+					$payload['value'],
+					$payload['ttl'],
+					$payload['dir'],
+					$payload['domain']
+				);
 	     	}
      	}
      	
