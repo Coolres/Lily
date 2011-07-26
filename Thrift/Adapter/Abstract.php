@@ -152,9 +152,7 @@ abstract class Lily_Thrift_Adapter_Abstract
 			
 			try {
 				$host = $this->hosts[$this->connection_id];
-				Lily_Log::debug("hosts", $this->hosts);
 				$port = isset($host['port']) ? $host['port'] : $this->port;
-				Lily_Log::debug("Opening thrift connection to {$host['host']}");
 				$this->openConnection($host['host'], $port);
 				if ($this->client !== null) break;
 			} catch (TException $te) {
