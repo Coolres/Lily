@@ -157,7 +157,7 @@ class Lily_Log {
 		if ($filename == 'STDOUT') return;
 		$file = fopen($filename, 'a');
 		if ($file === false) {
-			//throw new Exception("Could not open log file {$filename} for write.");
+			throw new Exception("Could not open log file {$filename} for write.");
 		} else {
 			fclose($file);
 		}

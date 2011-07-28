@@ -4,6 +4,9 @@ class Lily_Database_Adapter_MySQL
 	extends Lily_Database_Adapter_Abstract
 {
 
+	public function __construct($options) {
+		parent::__construct($options);
+	}
 
 	/* (non-PHPdoc)
 	 * @see Database_Abstract::connect()
@@ -11,8 +14,8 @@ class Lily_Database_Adapter_MySQL
 	protected function connect() {
 		$this->connection = mysql_connect($this->host, $this->username, $this->password);
 		if (false == $this->connection) {
-			$details = "Could not connect to $user@$host "
-				. ($password ? "using password" : "not using password");
+			$details = "Could not connect to {$this->username}@{$this->host} "
+				. ($this->password ? "using password" : "not using password");
 			Lily_Log::error($details);
 			throw new Lily_Database_Exception("Could not connect to database. Consult error log for more details.");
 		}

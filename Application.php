@@ -34,6 +34,7 @@ class Lily_Application {
 		// or pick out the ones this system will care about
 		foreach ($ini->get() as $module => $payload) {
 			switch ($module) {
+				case 'constants':
 				case 'constant' :
 					foreach ($payload as $key => $value) {
 						if (!defined($key)) define($key, $value);
