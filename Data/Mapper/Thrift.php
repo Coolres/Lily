@@ -286,6 +286,7 @@ abstract class Lily_Data_Mapper_Thrift
 	public function getCounter(Lily_Data_Model_Abstract& $model, $column)
 	{
 		$row_id = $this->_buildRowId($model);
+		
 		if ($this->cache_enabled) {
 			$mc = Lily_Memcached_Manager::get();
 			$key = $this->_buildCacheId($row_id, array($column));
@@ -294,15 +295,14 @@ abstract class Lily_Data_Mapper_Thrift
 		}
 		
 		$result = $this->client->get($this->table, $row_id, $column);
-		if (empty($result)) {
-			$return = 0;
-		} else {
+		$return = 0;
+		if (!empty($result)) {
 			$row = reset($result);
 			$return = $this->convertBinToInt($row->value);
 		}
 		
 		if ($this->cache_enabled) {
-			$mc->set($key, $result);
+			$mc->set($key, $return);
 		}
 		
 		return $return;
