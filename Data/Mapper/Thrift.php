@@ -245,8 +245,8 @@ abstract class Lily_Data_Mapper_Thrift
 		);
 		
 		if ($this->cache_enabled) {
+			$key = $this->_buildCacheId($row_id, array($column));
 			$mc = Lily_Memcached_Manager::get();
-			$key = $this->_buildCacheId($row_id);
 			$mc->set($key, $result);
 		}
 		return $result;
@@ -263,13 +263,14 @@ abstract class Lily_Data_Mapper_Thrift
 	public function decrement(Lily_Data_Model_Abstract& $model, $column, $amount=1)
 	{
 		if ($amount > 0) $amount = $amount * -1;
+		$row_id = $this->_buildRowId($model);
 		$result = $this->client->atomicIncrement(
-			$this->table, $this->_buildRowId($model), $column, $amount
+			$this->table, $row_id, $column, $amount
 		);
 		
 		if ($this->cache_enabled) {
+			$key = $instance->_buildCacheId($row_id, array($column));
 			$mc = Lily_Memcached_Manager::get();
-			$key = $instance->_buildCacheId($instance->_buildRowId($model));
 			$mc->set($key, $result);
 		}
 		return $result;
@@ -284,15 +285,15 @@ abstract class Lily_Data_Mapper_Thrift
 	 */
 	public function getCounter(Lily_Data_Model_Abstract& $model, $column)
 	{
-		$row = $this->_buildRowId($model);
-		$key = $this->_buildCacheId($row);
+		$row_id = $this->_buildRowId($model);
 		if ($this->cache_enabled) {
 			$mc = Lily_Memcached_Manager::get();
+			$key = $this->_buildCacheId($row_id, array($column));
 			$temp = $mc->get($key);
 			if ($temp) return $temp;
 		}
 		
-		$result = $this->client->get($this->table, $row, $column);
+		$result = $this->client->get($this->table, $row_id, $column);
 		if (empty($result)) {
 			$return = 0;
 		} else {
@@ -301,7 +302,6 @@ abstract class Lily_Data_Mapper_Thrift
 		}
 		
 		if ($this->cache_enabled) {
-			$mc = Lily_Memcached_Manager::get();
 			$mc->set($key, $result);
 		}
 		
