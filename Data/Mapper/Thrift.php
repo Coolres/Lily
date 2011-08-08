@@ -163,6 +163,16 @@ abstract class Lily_Data_Mapper_Thrift
 		return $this->get($row_id, $columns);
 	}
 
+	public function getCellByModel(Lily_Data_Model_Abstract& $model, $cell) {
+		$result = null;
+		$row_id = $this->_buildRowId($model);
+		if (empty($row_id)) return null;
+		$temp = $this->client->getRowWithColumns($this->table, $row_id, array($cell));
+		if (empty($temp)) return null;
+		$temp = current($temp);
+		return $temp->columns[$cell]->value;
+	}
+	
 	/**
 	 * insert
 	 * @param Model|Model[] $model
