@@ -18,7 +18,6 @@ class Lily_Controller_Request
     private $_dispatched;
     private $_data_type;
     
-    
     /**
      * __construct function.
      * 
@@ -247,40 +246,40 @@ class Lily_Controller_Request
 		return $_SERVER['HTTP_USER_AGENT'];
 	}
 	
+	public function checkUserAgent($devices) {
+	    if (!is_array($devices)) {
+	        $devices = array($devices);
+	    }
+	    if (!isset($_SERVER['HTTP_USER_AGENT'])) {
+			return false;
+		}
+        foreach ($devices as $device) {
+			if (strpos($_SERVER['HTTP_USER_AGENT'], $device)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public function isUserAgentMobileApple() {
-		
-		if ( !isset($_SERVER['HTTP_USER_AGENT']) ) {
-			return false;
-		}
-		
-		$devices = array(
-			'iPhone', 'iPod', 'iPad'
-		);
-		
-		foreach ($devices as $device) {
-			if (strpos($_SERVER['HTTP_USER_AGENT'], $device)) {
-				return true;
-			}
-		}
-		return false;
+	    return $this->checkUserAgent(array(
+	       'iPhone', 'iPod', 'iPad'
+	    ));
 	}
-
+	
 	public function isUserAgentMobile() {
-		
-		if ( !isset($_SERVER['HTTP_USER_AGENT']) ) {
-			return false;
-		}
-		
-		$devices = array(
-			'iPhone', 'iPod', 'iPad', 'BlackBerry', 'Android'
-		);
-		
-		foreach ($devices as $device) {
-			if (strpos($_SERVER['HTTP_USER_AGENT'], $device)) {
-				return true;
-			}
-		}
-		return false;
+		return $this->checkUserAgent(array(
+            'iPhone', 'iPod', 'iPad', 'BlackBerry', 'Android'
+		));
 	}
 
+    public function isUserAgentPhone() {
+        return $this->checkUserAgent(array(
+            'iPhone', 'Android'
+        ));
+    }
+    
+    public function isUserAgentIpod() {
+        return $this->checkUserAgent('iPod');
+    }
 }
