@@ -229,13 +229,18 @@ abstract class Lily_Data_Mapper_Thrift
 	/**
 	 * delete
 	 *
-	 * @param Model_Thrift $model
+	 * @param Lily_Data_Model_Abstract|Lily_Data_Model_Abstract{} $model
 	 */
-	public function delete(Lily_Data_Model_Abstract& $model)
+	public function delete($model)
 	{
-		$row_id = $this->_buildRowId($model);
-		$this->client->deleteAllRow($this->table, $row_id);
-		$this->invalidate($model);
+		if ($model instanceof Lily_Data_Model_Abstract) {
+			$model = array($model);
+		}
+		foreach ($model as $m) {
+			$row_id = $this->_buildRowId($m);
+			$this->client->deleteAllRow($this->table, $row_id);
+			$this->invalidate($m);
+		}
 		return true;
 	}
 

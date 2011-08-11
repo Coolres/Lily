@@ -57,8 +57,8 @@ class Lily_Controller_Dispatcher
         		break;
         	}
 
-        	$controller_dir		= $this->getControllerDir($request->getModuleName());//$this->_dirs[$request->getModuleName()]['controller_dir'];
-        	$template_dir		= $this->getTemplateDir($request->getModuleName());//$this->_dirs[$request->getModuleName()]['template_dir'];
+        	$controller_dir		= $this->getControllerDir($request->getModuleName());
+        	$template_dir		= $this->getTemplateDir($request->getModuleName());
         	
         	$controller_class	= $this->formatControllerName($request->getControllerName());
         	$controller_path	= $controller_dir . '/' . $controller_class . '.php';
