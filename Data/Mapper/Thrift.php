@@ -419,8 +419,7 @@ abstract class Lily_Data_Mapper_Thrift
 					if (isset($column_props['mutate_method'])) {
 						$method = $column_props['mutate_method'];
 						$this->$method($model, $mutations);
-					// Use the conventional mutation building approach
-					} else {
+					} else {// Use the conventional mutation building approach
 						$mutation = $this->_buildMutation($model, $family_name, $column_name, $column_props);
 						if (null !== $mutation) $mutations[] = $mutation;
 					}
@@ -551,8 +550,14 @@ abstract class Lily_Data_Mapper_Thrift
 			$method_name = Utility::toCamelCase('get_' . $family);
 			if (!method_exists($model, $method_name)) $method_name = null;
 		} else {
-			$method_name1 = Utility::toCamelCase('get_' . $family . '_' . $column);
-			$method_name2 = Utility::toCamelCase('get_' . $column) ;
+			if (isset($props['model_property'])) {
+				$property = $props['model_property'];
+				$method_name1 = Utility::toCamelCase('get_' . $family . '_' . $property);
+				$method_name2 = Utility::toCamelCase('get_' . $property) ;
+			} else {
+				$method_name1 = Utility::toCamelCase('get_' . $family . '_' . $column);
+				$method_name2 = Utility::toCamelCase('get_' . $column) ;
+			}
 			if (method_exists($model, $method_name1)) $method_name = $method_name1;
 			if (method_exists($model, $method_name2)) $method_name = $method_name2;
 		}
