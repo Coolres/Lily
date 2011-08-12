@@ -11,11 +11,13 @@ class Lily_Thrift_Hbase_ResultSet
 	protected $_scanner;
 	protected $_client;
 	protected $_current;
+	protected $_prefix;
 	
-	public function __construct(Lily_Thrift_Adapter_Abstract& $client, $scanner)
+	public function __construct(Lily_Thrift_Adapter_Abstract& $client, $scanner, $prefix=null)
 	{
 		$this->_client = $client;
 		$this->_scanner = $scanner;
+		$this->_prefix = $prefix;
 		$this->next();
 	}
 	
@@ -38,6 +40,13 @@ class Lily_Thrift_Hbase_ResultSet
 			$this->_current = null;
 			return $this->_current;
 		}
+		$temp = current($result);
+		if (null !== $this->_prefix) {
+			if (substr($temp->row, 0, strlen($this->_prefix) !== $this->_prefix)) { 
+				$this->_current = null;
+			}
+		}
+		
 		$this->_current = current($result);
 		return $this->_current;
 	}
