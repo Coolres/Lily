@@ -140,11 +140,8 @@ abstract class Lily_Data_Mapper_Thrift
 		}
 		$result = $this->_batchGet($row_id, $columns);
 		if ($pop) {
-			if (false === ($t = current($result))) {
-				return null;
-			} else {
-				return $t;
-			}
+			$t = reset($result);
+			return $t === false ? null : $t;
 		};
 		return $result;
 	}
