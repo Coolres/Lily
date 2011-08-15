@@ -266,6 +266,10 @@ class Lily_Controller_Request
 	       'iPhone', 'iPod', 'iPad'
 	    ));
 	}
+
+    public function isUserAgentAndroid() {
+        return $this->checkUserAgent('Android');
+    }
 	
 	public function isUserAgentMobile() {
 		return $this->checkUserAgent(array(
