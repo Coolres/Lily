@@ -281,7 +281,7 @@ abstract class Lily_Data_Mapper_Thrift
 		);
 		
 		if ($this->cache_enabled) {
-			$key = $instance->_buildCacheId($row_id, array($column));
+			$key = $this->_buildCacheId($row_id, array($column));
 			$mc = Lily_Memcached_Manager::get();
 			$mc->set($key, $result);
 		}
