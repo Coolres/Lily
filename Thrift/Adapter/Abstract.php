@@ -38,6 +38,7 @@ abstract class Lily_Thrift_Adapter_Abstract
 			} else {
 				$this->hosts = $this->parseHosts($options['host']);
 			}
+			shuffle($this->hosts);
 		} else {
 			throw new Lily_Config_Exception('thrift.role.$role.host');
 		}
