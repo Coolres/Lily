@@ -40,6 +40,7 @@ class Lily_Controller_Response
     public function setCookie($cookie_name, $value, $ttl, $dir='/', $domain=null)
     {
    		$this->_cookie[$cookie_name] = array(
+   			'name'	=> $cookie_name,
    			'value'	=>$value,
    			'ttl'	=> $ttl,
    			'dir'	=> $dir,
@@ -47,6 +48,17 @@ class Lily_Controller_Response
    		);
    		return $this;
     }
+	
+	public function setCookieObject(Lily_Data_Model_Cookie $cookie) {
+		$this->setCookie(
+			$cookie->getName(),
+			$cookie->getValue(),
+			$cookie->getTTL(),
+			$cookie->getDirectory(),
+			$cookie->getDomain()
+		);
+		return $this;
+	}
     
     public function setContent($content) {
     	$this->_content = $content;
